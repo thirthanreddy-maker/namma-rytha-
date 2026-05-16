@@ -1,4 +1,4 @@
-const CACHE_NAME = 'namma-rytha-v7';
+const CACHE_NAME = 'namma-rytha-v8';
 const ASSETS = [
   '/',
   '/index.html',
