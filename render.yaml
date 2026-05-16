@@ -3,8 +3,12 @@ services:
     name: namma-rytha-backend
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install --build-from-source
     startCommand: npm start
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: NODE_VERSION
-        value: 18.0.0
+        value: 18.20.0
+      - key: GOOGLE_CLIENT_ID
+        value: 389100486246-iois5amf28nltsiiqajo6n1bv7v0siqp.apps.googleusercontent.com

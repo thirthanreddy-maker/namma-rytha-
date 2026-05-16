@@ -35,7 +35,7 @@ async function mLoadProducts() {
   list.innerHTML = '<div style="text-align:center; padding:20px">⏳ Loading...</div>';
   
   try {
-    const res = await fetch('http://localhost:3000/api/products');
+    const res = await fetch('https://namma-rytha-backend.onrender.com/api/products');
     mState.products = await res.json();
     mRenderProducts(mState.products);
   } catch (e) {

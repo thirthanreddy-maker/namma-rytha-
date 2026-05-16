@@ -306,7 +306,7 @@
 
     async function loadInventory() {
       try {
-        const res = await fetch('http://localhost:3000/api/products');
+        const res = await fetch('https://namma-rytha-backend.onrender.com/api/products');
         const prods = await res.json();
         document.getElementById('statProducts').textContent = prods.length;
         const tableBody = document.getElementById('inventoryTableBody');
@@ -330,7 +330,7 @@
       const desc = document.getElementById('adminProdDesc').value;
       if(!name) return alert('Name required');
       try {
-        const res = await fetch('http://localhost:3000/api/products', {
+        const res = await fetch('https://namma-rytha-backend.onrender.com/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, category: cat, price, description: desc })
