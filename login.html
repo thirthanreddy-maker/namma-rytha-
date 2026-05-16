@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Namma Rytha — Login</title>
+  <meta name="description" content="Login to Namma Rytha — AI-powered smart farming platform for Indian farmers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="smooth.css" />
+  <link rel="manifest" href="manifest.json" />
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    // ── PASTE YOUR GOOGLE CLIENT ID HERE ──
+    const GOOGLE_CLIENT_ID = '389100486246-iois5amf28nltsiiqajo6n1bv7v0siqp.apps.googleusercontent.com';
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('SW registered!', reg);
+        }).catch(err => {
+          console.log('SW registration failed: ', err);
+        });
+      });
+    }
+  </script>
+  <script src="translations.js"></script>
+  <style>
+    :root {
+      --bg-dark: #050a05;
+      --green-primary: #4ade80;
+      --green-dark: #16a34a;
+      --green-glow: rgba(74, 222, 128, 0.2);
+      --border: rgba(74, 222, 128, 0.1);
+      --border-glow: rgba(74, 222, 128, 0.4);
+      --text-primary: #f0fdf4;
+      --text-muted: #94a3b8;
+      --text-secondary: #a7f3d0;
+      --error: #f87171;
+      --purple: #a78bfa;
+      --transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient orbs with reduced CPU usage */
+    .orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      animation: orbFloat 20s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .orb1 {
+      width: 600px;
+      height: 600px;
+      background: #16a34a;
+      top: -10%;
+      left: -10%;
+      animation-delay: 0s;
+    }
+
+    .orb2 {
+      width: 500px;
+      height: 500px;
+      background: #0ea5e9;
+      bottom: -10%;
+      right: -10%;
+      animation-delay: -5s;
+    }
+
+    .orb3 {
+      width: 400px;
+      height: 400px;
+      background: #8b5cf6;
+      top: 40%;
+      left: 30%;
+      animation-delay: -10s;
+    }
+
+    @keyframes orbFloat {
+
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      33% {
+        transform: translate3d(30px, -50px, 0) scale(1.1);
+      }
+
+      66% {
+        transform: translate3d(-20px, 20px, 0) scale(0.9);
+      }
+    }
+
+    /* Layout wrapper - Optimized for immediate start */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      animation: pageFadeIn 1s var(--transition) both;
+      will-change: opacity, transform;
+    }
+
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 30px, 0) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    /* LEFT PANEL — Visual Showcase */
+    .left-panel {
+      flex: 0 0 50%;
+      background: linear-gradient(160deg, rgba(22, 163, 74, 0.12) 0%, rgba(5, 10, 5, 0.4) 100%);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(74, 222, 128, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand-section {
+      text-align: center;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-logo-img {
+      width: 120px;
+      height: 120px;
+      border-radius: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(74, 222, 128, 0.2);
+      animation: logoPulse 4s ease-in-out infinite;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4ade80, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .brand-tagline {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      transition: all var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .feature-item:hover {
+      border-color: var(--green-primary);
+      background: rgba(74, 222, 128, 0.05);
+      transform: translateX(10px) translate3d(0, 0, 0);
+      box-shadow: 0 10px 30px rgba(74, 222, 128, 0.05);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      transition: transform 0.4s ease;
+    }
+
+    .feature-item:hover .feature-icon {
+      transform: scale(1.2) rotate(10deg);
+    }
+
+    .feature-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* RIGHT PANEL — Forms */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(10, 15, 10, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 48px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 50px rgba(74, 222, 128, 0.03);
+      position: relative;
+      overflow: hidden;
+      will-change: transform, opacity;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      padding: 6px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .tab-slider {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: calc(50% - 6px);
+      height: calc(100% - 12px);
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      border-radius: 12px;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 1;
+      box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 2;
+      transition: color 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .auth-tab.active {
+      color: #050a05;
+    }
+
+    /* Sliding Panels */
+    .panels-container {
+      display: flex;
+      width: 200%;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+
+    .form-panel {
+      flex: 1;
+      padding: 0 2px;
+      transition: opacity 0.4s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .form-panel.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .form-header {
+      margin-bottom: 32px;
+    }
+
+    .form-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-input:focus {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--green-primary);
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .form-input:focus+.input-icon {
+      color: var(--green-primary);
+    }
+
+    .pw-view-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      transition: color 0.3s ease;
+    }
+
+    .pw-view-toggle:hover {
+      color: var(--green-primary);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      border: none;
+      border-radius: 16px;
+      color: #050a05;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s var(--transition);
+      box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 35px rgba(22, 163, 74, 0.5);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .social-divider {
+      display: flex;
+      align-items: center;
+      margin: 30px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .social-divider::before,
+    .social-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .social-divider span {
+      padding: 0 15px;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .social-btn {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .social-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+
+    .social-btn.google-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-btn.google-btn:hover {
+      background: rgba(66, 133, 244, 0.12);
+      border-color: rgba(66, 133, 244, 0.5);
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.15);
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Google One Tap container — hidden, we use our own button */
+    #g_id_onload { display: none !important; }
+
+    .gsi-loading {
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #4285f4;
+      border-radius: 50%;
+    }
+
+    /* Strength Meter */
+    .strength-meter {
+      margin-top: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .strength-dot {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    /* Status Messages */
+    .status-alert {
+      padding: 14px 18px;
+      border-radius: 14px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .status-error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: #fca5a5;
+    }
+
+    .status-success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      color: #86efac;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Spinner */
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #050a05;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .left-panel {
+        display: none;
+      }
+
+      body {
+        background: radial-gradient(circle at top right, #0a1f0a, #050a05);
+      }
+    }
+
+    @media (max-width: 500px) {
+      .auth-card {
+        padding: 32px 24px;
+        border-radius: 24px;
+      }
+
+      .right-panel {
+        padding: 20px;
+      }
+    }
+  </style>
+  <style>
+    /* Google Translate CSS Fixes */
+    .goog-te-banner-frame.skiptranslate {
+      display: none !important;
+    }
+
+    body {
+      top: 0px !important;
+    }
+
+    #google_translate_element {
+      opacity: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .lang-wrapper {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .lang-btn {
+      background: rgba(10, 15, 10, 0.75);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .lang-btn:hover {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+    }
+
+    .lang-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: rgba(10, 15, 10, 0.95);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+      backdrop-filter: blur(10px);
+    }
+
+    .lang-menu.show {
+      display: flex;
+      animation: slideIn 0.2s ease;
+    }
+
+    .lang-option {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      text-align: left;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+
+    .lang-option:hover {
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="google_translate_element"></div>
+  <div class="orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+
+  <div class="page-wrapper">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="brand-section">
+        <img src="logo.png" alt="Namma Rytha Logo" class="brand-logo-img">
+        <h1 class="brand-name">Namma Rytha</h1>
+        <p class="brand-tagline">Empowering Indian farmers with cutting-edge AI for smarter decisions and better yields.
+        </p>
+      </div>
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="feature-icon">💧</span>
+          <div>
+            <div class="feature-title">Smart Irrigation Advisor</div>
+            <div class="feature-desc">AI-driven soil moisture management</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🌿</span>
+          <div>
+            <div class="feature-title">Fertilizer Prescription</div>
+            <div class="feature-desc">Localized NPK recommendations</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📈</span>
+          <div>
+            <div class="feature-title">Market Price Trends</div>
+            <div class="feature-desc">Real-time Mandi rates & analysis</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="auth-card">
+        <div class="lang-wrapper">
+          <button class="lang-btn" onclick="document.getElementById('langMenu').classList.toggle('show')">
+            🌐 Changing the language
+          </button>
+          <div class="lang-menu" id="langMenu">
+            <button class="lang-option" onclick="setLang('en')">English</button>
+            <button class="lang-option" onclick="setLang('kn')">ಕನ್ನಡ (Kannada)</button>
+            <button class="lang-option" onclick="setLang('hi')">हिंदी (Hindi)</button>
+            <button class="lang-option" onclick="setLang('te')">తెలుగు (Telugu)</button>
+            <button class="lang-option" onclick="setLang('ta')">தமிழ் (Tamil)</button>
+            <button class="lang-option" onclick="setLang('mr')">मराठी (Marathi)</button>
+          </div>
+        </div>
+
+        <div class="auth-tabs">
+          <div class="tab-slider" id="tabSlider"></div>
+          <button class="auth-tab active" id="btnTabLogin" onclick="showPanel('login')">Login</button>
+          <button class="auth-tab" id="btnTabSignup" onclick="showPanel('signup')">Sign Up</button>
+        </div>
+
+        <div class="panels-container" id="panelsContainer">
+          <!-- LOGIN PANEL -->
+          <div class="form-panel active" id="panelLogin">
+            <div class="form-header">
+              <h2 class="form-title" data-i18n="welcome_back">Welcome back 👋</h2>
+              <p class="form-subtitle" data-i18n="login_subtitle">Enter your credentials to access your farm dashboard.</p>
+            </div>
+
+            <div class="status-alert status-error" id="loginError"></div>
+            <div class="status-alert status-success" id="loginSuccess"></div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="email_phone">Email or Phone</label>
+              <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input type="text" class="form-input" id="loginId" placeholder="farmer@example.com">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="password">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="form-input" id="loginPass" placeholder="••••••••">
+                <button class="pw-view-toggle" onclick="togglePassword('loginPass')">👁️</button>
+              </div>
+            </div>
+
+            <button class="btn-submit" id="btnLogin" onclick="handleLogin()" data-i18n="sign_in">
+              🌾 Sign In
+            </button>
+            <div class="social-divider"><span>Or continue with</span></div>
+
+            <!-- Hidden Google One Tap trigger (fires callback automatically) -->
+            <div id="g_id_onload"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID"
+              data-callback="handleGoogleLogin"
+              data-auto_prompt="false">
+            </div>
+
+            <div class="social-grid">
+              <button class="social-btn" id="btnDemoLogin" onclick="demoAutoLogin()">
+                🎯 Demo Login
+              </button>
+              <div id="btnGoogleLoginContainer" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- SIGNUP PANEL -->
+          <div class="form-panel" id="panelSignup">
+            <div class="form-header">
+              <h2 class="form-title">Join Namma Rytha 🌱</h2>
+              <p class="form-subtitle">Create your account and start your smart farming journey.</p>
+            </div>
+
+            <div class="status-alert status-error" id="signupError"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-input" style="padding-left: 16px;" id="regFirst" placeholder="Raju">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-input" style="padding-left: 16px;" id="regLast" placeholder="Patil">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input type="email" class="form-input" id="regEmail" placeholder="raju@example.com">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Create Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="form-input" id="regPass" placeholder="Min 6 characters"
+                  oninput="updateStrength(this.value)">
+              </div>
+              <div class="strength-meter">
+                <div class="strength-dot" id="dot1"></div>
+                <div class="strength-dot" id="dot2"></div>
+                <div class="strength-dot" id="dot3"></div>
+                <div class="strength-dot" id="dot4"></div>
+              </div>
+            </div>
+
+            <button class="btn-submit" id="btnSignup" onclick="handleSignup()">
+              🌱 Create Account
+            </button>
+
+            <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+              By signing up, you agree to our <a href="#"
+                style="color: var(--green-primary); text-decoration: none;">Terms & Privacy</a>.
+            </p>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+          <a href="admin_login.html" style="color: #94a3b8; text-decoration: none; font-size: 11px; opacity: 0.6; letter-spacing: 1px;">🔐 STAFF ADMIN PORTAL</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── CONFIG ──
+    const _isNative = (() => { try { return window.Capacitor && window.Capacitor.isNativePlatform(); } catch(e) { return false; } })();
+    const API_BASE_URL = _isNative ? 'http://192.168.1.10:3000' : 'http://localhost:3000';
+    const API_URL = `${API_BASE_URL}/api`;
+
+    // ── CHECK EXISTING AUTH ──
+    if (localStorage.getItem('nr_user')) {
+      window.location.href = 'index.html';
+    }
+
+    // ── PANEL SWITCHING ──
+    function showPanel(type) {
+      const container = document.getElementById('panelsContainer');
+      const loginTab = document.getElementById('btnTabLogin');
+      const signupTab = document.getElementById('btnTabSignup');
+      const slider = document.getElementById('tabSlider');
+      const pLogin = document.getElementById('panelLogin');
+      const pSignup = document.getElementById('panelSignup');
+
+      if (type === 'login') {
+        container.style.transform = 'translateX(0)';
+        slider.style.transform = 'translateX(0)';
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        pLogin.classList.add('active');
+        pSignup.classList.remove('active');
+      } else {
+        container.style.transform = 'translateX(-50%)';
+        slider.style.transform = 'translateX(100%)';
+        loginTab.classList.remove('active');
+        signupTab.classList.add('active');
+        pLogin.classList.remove('active');
+        pSignup.classList.add('active');
+      }
+    }
+
+    // ── UTILS ──
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function updateStrength(val) {
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const colors = ['#f87171', '#fb923c', '#fbbf24', '#4ade80'];
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('dot' + i);
+        dot.style.background = i <= score ? colors[score - 1] : 'rgba(255,255,255,0.05)';
+        dot.style.boxShadow = i <= score ? `0 0 10px ${colors[score - 1]}44` : 'none';
+      }
+    }
+
+    function showAlert(id, msg, isError = true) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.opacity = '1', 10);
+
+      // Auto hide if success
+      if (!isError) {
+        setTimeout(() => {
+          el.style.opacity = '0';
+          setTimeout(() => el.style.display = 'none', 300);
+        }, 3000);
+      }
+    }
+
+    function clearAlerts() {
+      document.querySelectorAll('.status-alert').forEach(el => {
+        el.style.display = 'none'; el.textContent = '';
+      });
+    }
+
+    // ── ACTIONS ──
+    async function handleLogin() {
+      clearAlerts();
+      const email = document.getElementById('loginId').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const btn = document.getElementById('btnLogin');
+
+      if (!email || !pass) return showAlert('loginError', 'Please enter both email and password.');
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loading-spinner"></div> Signing sync...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('nr_user', JSON.stringify(data));
+          showAlert('loginSuccess', 'Success! Welcome back.', false);
+          setTimeout(() => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => window.location.href = 'index.html', 400);
+          }, 600);
+        } else {
+          showAlert('loginError', data.error || 'Invalid credentials.');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        showAlert('loginError', 'Unable to connect to server. Ensure it is running.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function handleSignup() {
+      clearAlerts();
+      const first = document.getElementById('regFirst').value.trim();
+      const last = document.getElementById('regLast').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
+      const btn = document.getElementById('btnSignup');
+
+      if (!first || !last || !email || !pass) return showAlert('signupError', 'All fields are required.');
+      if (pass.length < 6) return showAlert('signupError', 'Password must be at least 6 characters.');
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loading-spinner"></div> Planting roots...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: first,
+            lastName: last,
+            email,
+            password: pass,
+            location: 'Nashik, MH', // Default for demo
+            area: '2.5',
+            crop: 'wheat',
+            phone: '9876543210'
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('nr_user', JSON.stringify(data));
+          window.location.href = 'index.html';
+        } else {
+          showAlert('signupError', data.error || 'Signup failed.');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        showAlert('signupError', 'Server error. Please try again later.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    function demoAutoLogin() {
+      const demoUser = {
+        name: 'Raju Patil',
+        email: 'demo@nammarytha.in',
+        location: 'Nashik, Maharashtra',
+        area: '5.2',
+        crop: 'tomato',
+        phone: '+91 99887 76655'
+      };
+      localStorage.setItem('nr_user', JSON.stringify(demoUser));
+      showAlert('loginSuccess', 'Demo mode active. Entering dashboard...', false);
+      setTimeout(() => window.location.replace('index.html'), 1000);
+    }
+
+    // ── REAL GOOGLE SIGN-IN ──
+    window.onload = function () {
+      if (typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleLogin
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("btnGoogleLoginContainer"),
+          { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: "signin_with", width: "100%" }
+        );
+      }
+    };
+
+    async function handleGoogleLogin(response) {
+      clearAlerts();
+      const btn = document.getElementById('btnGoogleLogin');
+      const credential = response.credential;
+
+      btn.innerHTML = '<span class="gsi-loading"></span>&nbsp; Verifying...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/google-auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('nr_user', JSON.stringify(data));
+          showAlert('loginSuccess', `✅ Welcome, ${data.name.split(' ')[0]}! Entering dashboard...`, false);
+          setTimeout(() => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => window.location.replace('index.html'), 400);
+          }, 800);
+        } else {
+          showAlert('loginError', data.error || 'Google Sign-In failed. Please try again.');
+        }
+      } catch (err) {
+        showAlert('loginError', 'Server error. Is the server running?');
+      }
+    }
+  </script>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,kn,hi,te,ta,mr',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+    function applyLocalTranslations(lang) {
+      if (!TRANSLATIONS[lang]) return;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (TRANSLATIONS[lang][key]) {
+          // If it's a button with an emoji, we might need to preserve the emoji.
+          // But for "WOW" directness, we'll just replace the text or handle it carefully.
+          if (el.tagName === 'BUTTON' && el.querySelector('span')) {
+             // Handle complex buttons if needed
+          }
+          el.textContent = TRANSLATIONS[lang][key];
+        }
+      });
+    }
+
+    function setLang(code) {
+      // 1. Direct local translation (Instant)
+      applyLocalTranslations(code);
+
+      // 2. Fallback to Google Translate for complex/dynamic content
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = code;
+        combo.dispatchEvent(new Event('change'));
+      }
+      document.getElementById('langMenu').classList.remove('show');
+      
+      // Save preference
+      const user = localStorage.getItem('nr_user');
+      if (user) {
+        const u = JSON.parse(user);
+        u.lang = code;
+        localStorage.setItem('nr_user', JSON.stringify(u));
+      }
+    }
+    // Close menu when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.lang-wrapper')) {
+        const menu = document.getElementById('langMenu');
+        if (menu && menu.classList.contains('show')) menu.classList.remove('show');
+      }
+    });
+  </script>
+  <script type="text/javascript"
+    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+
+</html>

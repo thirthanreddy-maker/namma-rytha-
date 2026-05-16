@@ -1,0 +1,257 @@
+/* ============================================================
+   SMOOTH INTERACTIONS LAYER — Namma Rytha
+   GPU-accelerated micro-animations for every element
+   ============================================================ */
+
+/* ── GLOBAL PERFORMANCE ── */
+* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+.stat-card, .panel, .nav-item, .btn, .quick-btn, .tip-card,
+.crop-card, .fert-product, .alert-item, .forecast-day,
+.mandi-card, .achievement, .impact-counter,
+.ai-chip, .city-btn, .toggle-btn {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* ── PAGE TRANSITIONS ── */
+.page { animation: pageFadeIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── STAT CARDS STAGGER ── */
+.stat-card { animation: statIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes statIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.stats-grid .stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stats-grid .stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stats-grid .stat-card:nth-child(3) { animation-delay: 0.19s; }
+.stats-grid .stat-card:nth-child(4) { animation-delay: 0.26s; }
+
+/* ── QUICK BUTTONS STAGGER ── */
+.quick-btn { animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.quick-btn:nth-child(1) { animation-delay: 0.05s; }
+.quick-btn:nth-child(2) { animation-delay: 0.10s; }
+.quick-btn:nth-child(3) { animation-delay: 0.15s; }
+.quick-btn:nth-child(4) { animation-delay: 0.20s; }
+.quick-btn:nth-child(5) { animation-delay: 0.25s; }
+.quick-btn:nth-child(6) { animation-delay: 0.30s; }
+
+/* ── RIPPLE EFFECT ── */
+.btn, .quick-btn, .refresh-btn, .city-btn, .hero-ai-btn, .ai-chip {
+  position: relative; overflow: hidden;
+}
+.ripple {
+  position: absolute; border-radius: 50%;
+  transform: scale(0); pointer-events: none;
+  animation: rippleAnim 0.55s linear;
+  background: rgba(255,255,255,0.18);
+  z-index: 10;
+}
+@keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
+
+/* ── HOVER LIFTS ── */
+.btn-primary:hover    { transform: translateY(-2px) scale(1.01); }
+.btn-secondary:hover  { transform: translateY(-2px); }
+.btn-ghost:hover      { transform: translateY(-1px); }
+.quick-btn:hover      { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(74,222,128,0.12); }
+.refresh-btn:hover    { transform: rotate(180deg) scale(1.06) !important; }
+.hero-ai-btn:hover    { transform: translateY(-2px) scale(1.03); }
+.city-btn:hover       { transform: translateY(-2px) scale(1.04); }
+.ai-chip:hover        { transform: translateY(-2px) scale(1.03); }
+.tip-card:hover       { transform: translateY(-5px) scale(1.01); box-shadow: 0 10px 28px rgba(74,222,128,0.12); }
+.stat-card:hover      { transform: translateY(-5px) scale(1.01); }
+.impact-counter:hover { transform: translateY(-5px); box-shadow: 0 14px 32px rgba(74,222,128,0.12); }
+.mandi-card:hover     { transform: translateY(-4px) scale(1.01); box-shadow: 0 8px 22px rgba(74,222,128,0.1); }
+.achievement:hover    { transform: translateY(-6px) scale(1.04); }
+.achievement.unlocked:hover { box-shadow: 0 10px 24px rgba(74,222,128,0.2); }
+
+/* ── NAV ITEMS ── */
+.nav-item { transition: all 0.22s cubic-bezier(0.4,0,0.2,1); }
+.nav-item:hover { transform: translateX(5px); }
+.nav-item.active { transform: translateX(3px); }
+
+/* ── SIDEBAR & MAIN TRANSITIONS ── */
+.sidebar { transition: width 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+.main    { transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── ALERTS SLIDE IN ── */
+.alert-item { animation: alertSlide 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+.alert-item:nth-child(1) { animation-delay: 0.05s; }
+.alert-item:nth-child(2) { animation-delay: 0.13s; }
+.alert-item:nth-child(3) { animation-delay: 0.21s; }
+@keyframes alertSlide {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.alert-item:hover { transform: translateX(7px) !important; }
+
+/* ── REC ITEMS ── */
+.rec-item { transition: all 0.22s ease; }
+.rec-item:hover { transform: translateX(6px); box-shadow: 2px 0 14px rgba(74,222,128,0.08); }
+
+/* ── FORECAST ── */
+.forecast-day { transition: all 0.22s cubic-bezier(0.4,0,0.2,1); }
+.forecast-day:hover { transform: translateY(-6px) scale(1.04); box-shadow: 0 12px 26px rgba(74,222,128,0.14); }
+.forecast-row { transition: all 0.2s ease; }
+.forecast-row:hover { transform: translateX(7px); }
+
+/* ── CROP & FERT CARDS ── */
+.crop-card    { transition: all 0.25s cubic-bezier(0.22,1,0.36,1); }
+.crop-card:hover { transform: translateX(7px) scale(1.01); }
+.fert-product { transition: all 0.22s ease; }
+.fert-product:hover { transform: translateX(5px); border-color: var(--border-glow); }
+
+/* ── PANEL ── */
+.panel { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+.panel:hover { border-color: var(--border-glow); box-shadow: 0 4px 24px rgba(74,222,128,0.07); }
+
+/* ── SYMPTOM CHECKBOXES ── */
+.symptom-check { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
+.symptom-check:hover  { transform: translateX(4px) scale(1.01); border-color: var(--border-glow); }
+.symptom-check:active { transform: scale(0.97); }
+
+/* ── SMOOTH FOCUS ── */
+.form-input:focus, .form-select:focus, .ai-input:focus {
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px rgba(74,222,128,0.12), 0 2px 8px rgba(74,222,128,0.08);
+  transform: scale(1.005);
+  transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* ── SLIDER ── */
+.range-slider::-webkit-slider-thumb { transition: box-shadow 0.2s ease, transform 0.18s ease; }
+.range-slider:active::-webkit-slider-thumb {
+  transform: scale(1.35);
+  box-shadow: 0 0 22px rgba(74,222,128,0.8);
+}
+
+/* ── TOGGLE BUTTON ── */
+.toggle-btn { transition: all 0.22s cubic-bezier(0.4,0,0.2,1); }
+.toggle-btn:hover  { transform: scale(1.03); }
+.toggle-btn:active { transform: scale(0.96); }
+.toggle-btn.active { animation: togglePop 0.28s cubic-bezier(0.22,1,0.36,1); }
+@keyframes togglePop {
+  0%   { transform: scale(0.92); }
+  60%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* ── AI CHAT ── */
+.ai-chat-panel { transition: right 0.38s cubic-bezier(0.22,1,0.36,1), box-shadow 0.38s ease; }
+.ai-chat-panel.open { box-shadow: -14px 0 52px rgba(0,0,0,0.65), -2px 0 22px rgba(74,222,128,0.07); }
+.ai-msg { animation: msgIn 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ai-msg-user { animation: msgInRight 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes msgInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ai-send-btn { transition: all 0.2s cubic-bezier(0.22,1,0.36,1); }
+.ai-send-btn:hover  { transform: scale(1.12) rotate(-5deg); box-shadow: 0 6px 20px rgba(74,222,128,0.5); }
+.ai-send-btn:active { transform: scale(0.92); }
+
+/* ── TOAST ── */
+.toast.show { animation: toastBounce 0.42s cubic-bezier(0.22,1,0.36,1); }
+@keyframes toastBounce {
+  0%   { transform: translateX(42px) scale(0.88); opacity: 0; }
+  55%  { transform: translateX(-6px) scale(1.03); opacity: 1; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+/* ── FAB BUTTONS ── */
+.fab-ai, .fab-voice { transition: transform 0.24s cubic-bezier(0.22,1,0.36,1), box-shadow 0.24s ease; }
+.fab-ai:hover    { transform: scale(1.15) translateY(-3px) rotate(-8deg); }
+.fab-voice:hover { transform: scale(1.15) translateY(-3px) rotate(8deg); }
+.fab-ai:active, .fab-voice:active { transform: scale(0.92); }
+
+/* ── TOPBAR ELEMENTS ── */
+.weather-pill:hover { transform: scale(1.06); }
+.alert-pill:hover   { transform: scale(1.06); }
+.topbar-btn { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
+.topbar-btn:hover { transform: scale(1.13) rotate(-6deg); }
+
+/* ── WEATHER ICON FLOAT ── */
+@keyframes weatherFloat {
+  0%,100% { transform: translateY(0) rotate(-4deg); }
+  50%     { transform: translateY(-12px) rotate(4deg); }
+}
+
+/* ── LOGO PULSE ── */
+@keyframes logoPulse {
+  0%,100% { box-shadow: 0 0 18px rgba(74,222,128,0.3), 0 0 0 0px rgba(74,222,128,0.12); }
+  50%     { box-shadow: 0 0 34px rgba(74,222,128,0.52), 0 0 0 9px rgba(74,222,128,0); }
+}
+
+/* ── METRIC BARS ── */
+.metric-fill, .npk-bar-fill { transition: width 1.3s cubic-bezier(0.4,0,0.2,1); }
+.ring-fill { transition: stroke-dashoffset 1.8s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── SCORE MINI ── */
+.score-mini-item:hover .score-mini-circle { transform: scale(1.08); }
+.score-mini-circle { transition: transform 0.25s ease; }
+
+/* ── MARKET TABLE ── */
+.market-table tr { transition: all 0.18s ease; }
+
+/* ── SKELETON LOADER ── */
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.11) 50%,
+    rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── MIC PULSE (listening) ── */
+.voice-animation.listening .voice-icon {
+  animation: micPulse 0.6s ease-in-out infinite alternate;
+}
+@keyframes micPulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.2); filter: drop-shadow(0 0 9px rgba(248,113,113,0.65)); }
+}
+
+/* ── SMOOTH SCROLL ── */
+.ai-chat-messages, .sidebar-nav, .pages-container {
+  scroll-behavior: smooth;
+}
+
+/* ── FARMER PROFILE HOVER ── */
+.farmer-profile { cursor: pointer; transition: all 0.22s ease; }
+.farmer-profile:hover { background: rgba(74,222,128,0.12); border-color: var(--border-glow); transform: scale(1.02); }
+
+/* ── SCORE MINI ITEMS ── */
+.score-mini-item { transition: all 0.22s ease; }
+.score-mini-item:hover { transform: translateY(-3px); }
+
+/* ── MODAL ── */
+@keyframes modalIn {
+  from { transform: scale(0.88) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

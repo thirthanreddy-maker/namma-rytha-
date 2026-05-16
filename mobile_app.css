@@ -1,0 +1,279 @@
+:root {
+  --eco-deep: #064e3b;
+  --eco-mid: #065f46;
+  --eco-accent: #fbbf24; /* Gold */
+  --eco-light: #ecfdf5;
+  --eco-card: rgba(6, 78, 59, 0.9);
+  --eco-glass: rgba(255, 255, 255, 0.1);
+  --eco-text: #f0fdf4;
+  --eco-text-muted: #a7f3d0;
+  --radius-xl: 24px;
+  --shadow-lux: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Outfit', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: radial-gradient(circle at top right, #065f46, #022c22);
+  color: var(--eco-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 80px; /* Space for bottom nav */
+}
+
+/* ─── MOBILE HEADER ─── */
+.m-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(2, 44, 34, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.m-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-logo img {
+  width: 35px;
+  height: 35px;
+  filter: drop-shadow(0 0 5px var(--eco-accent));
+}
+
+.m-logo-text {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+
+.m-logo-text span {
+  color: var(--eco-accent);
+}
+
+/* ─── BOTTOM NAVIGATION ─── */
+.m-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(6, 78, 59, 0.95);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 1000;
+  padding: 0 10px;
+}
+
+.m-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--eco-text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+}
+
+.m-nav-item.active {
+  color: var(--eco-accent);
+  transform: translateY(-5px);
+}
+
+.m-nav-icon {
+  font-size: 22px;
+  transition: all 0.3s;
+}
+
+.m-nav-item.active .m-nav-icon {
+  background: var(--eco-accent);
+  color: var(--eco-deep);
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(251, 191, 36, 0.3);
+  margin-top: -15px;
+}
+
+/* ─── HERO CARDS ─── */
+.m-hero {
+  margin: 15px;
+  padding: 25px;
+  background: linear-gradient(135deg, var(--eco-mid), #064e3b);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: var(--shadow-lux);
+  position: relative;
+  overflow: hidden;
+}
+
+.m-hero::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: var(--eco-accent);
+  filter: blur(80px);
+  opacity: 0.1;
+}
+
+.m-hero-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.m-hero-sub {
+  font-size: 14px;
+  color: var(--eco-text-muted);
+}
+
+/* ─── GRID CARDS ─── */
+.m-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 15px;
+}
+
+.m-card {
+  background: rgba(6, 78, 59, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.m-card-icon {
+  font-size: 28px;
+  background: rgba(255,255,255,0.05);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+}
+
+.m-card-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.m-card-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--eco-accent);
+}
+
+.m-btn:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+.m-prod-card {
+  display: flex;
+  gap: 15px;
+  background: rgba(6, 78, 59, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.m-prod-img {
+  width: 80px;
+  height: 80px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.m-prod-info {
+  flex: 1;
+}
+
+.m-prod-name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.m-prod-price {
+  color: var(--eco-accent);
+  font-weight: 800;
+  font-size: 18px;
+  margin: 5px 0;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.m-fade {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ─── BUTTONS ─── */
+.m-btn {
+  background: var(--eco-accent);
+  color: var(--eco-deep);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 15px;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+}
+
+/* ─── SECTION HEADS ─── */
+.m-section-header {
+  padding: 20px 20px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.m-section-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.m-view-all {
+  font-size: 12px;
+  color: var(--eco-accent);
+  text-decoration: none;
+}

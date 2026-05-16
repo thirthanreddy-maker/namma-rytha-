@@ -1,0 +1,9 @@
+node_modules/
+node_modules.zip
+*.apk
+database.sqlite
+.idea/
+.vscode/
+android/
+www/
+*.iml

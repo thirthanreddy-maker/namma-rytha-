@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Namma Rytha — Admin Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="smooth.css" />
+  <style>
+    :root {
+      --admin-bg: #0f172a;
+      --admin-primary: #6366f1;
+      --admin-secondary: #1e293b;
+      --admin-accent: #38bdf8;
+      --admin-card: rgba(30, 41, 59, 0.7);
+      --admin-border: rgba(99, 102, 241, 0.2);
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .status-light { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 8px; box-shadow: 0 0 8px #4ade80; animation: blink 1.5s infinite; }
+
+    body {
+      background: var(--admin-bg) !important;
+      color: #f8fafc !important;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .ambient-bg {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent),
+                  radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.1), transparent) !important;
+      z-index: -1;
+    }
+
+    .sidebar {
+      background: rgba(15, 23, 42, 0.95);
+      border-right: 1px solid var(--admin-border);
+    }
+
+    .nav-item.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--admin-accent);
+      border-right: 3px solid var(--admin-primary);
+    }
+
+    .panel {
+      background: var(--admin-card);
+      border: 1px solid var(--admin-border);
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(30, 41, 59, 0.5));
+      border: 1px solid var(--admin-border);
+      padding: 20px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    .stat-value { font-size: 24px; font-weight: 700; font-family: 'Space Grotesk'; }
+    .stat-label { font-size: 13px; color: #94a3b8; }
+
+    .btn-primary {
+      background: var(--admin-primary) !important;
+      border: none; color: white; border-radius: 12px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+    .admin-table {
+      width: 100%; border-collapse: collapse; margin-top: 15px;
+    }
+    .admin-table th {
+      text-align: left; padding: 12px; color: #94a3b8; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--admin-border);
+    }
+    .admin-table td {
+      padding: 14px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main {
+        margin-left: 0;
+      }
+      .mobile-menu-btn {
+        display: block !important;
+      }
+      .sidebar-toggle {
+        display: block !important;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .admin-form-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+  <script>
+    if (!localStorage.getItem('nr_admin')) {
+      window.location.replace('admin_login.html');
+    }
+  </script>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-name" style="color: var(--admin-accent); font-family: 'Space Grotesk'">Admin HQ</div>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleAdminSidebar()" style="background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;display:none;">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showAdminPage('overview')">
+        <span class="nav-icon">📊</span><span class="nav-text">Overview</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showAdminPage('inventory')">
+        <span class="nav-icon">📦</span><span class="nav-text">Marketplace</span>
+      </a>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏡</span><span class="nav-text">Farmer View</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-secondary" onclick="logoutAdmin()" style="width:100%; border-color: #f87171; color: #f87171">⏻ Logout</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left" style="display:flex;align-items:center;gap:12px">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleAdminSidebar()" style="background:none;border:none;color:#f8fafc;font-size:20px;cursor:pointer;display:none;padding:4px">☰</button>
+        <h1 class="page-title">Admin Dashboard</h1>
+        <div class="breadcrumb">System → Control Panel</div>
+      </div>
+      <div class="topbar-right">
+        <div class="weather-pill" style="background: rgba(99, 102, 241, 0.1); color: var(--admin-accent); padding: 8px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; display: flex; align-items: center; border: 1px solid var(--admin-border)">
+          <span class="status-light"></span>
+          <span>SYSTEM ONLINE</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="pages-container">
+      <!-- OVERVIEW -->
+      <section class="page active" id="admin-overview">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.2); color: #818cf8">👥</div>
+            <div class="stat-info">
+              <div class="stat-label">Total Farmers</div>
+              <div class="stat-value">1,248</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8">📦</div>
+            <div class="stat-info">
+              <div class="stat-label">Active Products</div>
+              <div class="stat-value" id="statProducts">8</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.2); color: #4ade80">📈</div>
+            <div class="stat-info">
+              <div class="stat-label">System Health</div>
+              <div class="stat-value">99.8%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top: 24px;">
+          <div class="panel-header">
+            <h2 class="panel-title">📡 Live System Analytics</h2>
+          </div>
+          <div style="display: flex; gap: 15px; margin-top: 20px; height: 100px; align-items: flex-end; padding: 0 10px;">
+            <div style="flex:1; height:40%; background:var(--admin-primary); border-radius:4px; opacity:0.6"></div>
+            <div style="flex:1; height:65%; background:var(--admin-primary); border-radius:4px; opacity:0.8"></div>
+            <div style="flex:1; height:50%; background:var(--admin-primary); border-radius:4px; opacity:0.6"></div>
+            <div style="flex:1; height:85%; background:var(--admin-accent); border-radius:4px"></div>
+            <div style="flex:1; height:45%; background:var(--admin-primary); border-radius:4px; opacity:0.7"></div>
+            <div style="flex:1; height:95%; background:var(--admin-accent); border-radius:4px"></div>
+            <div style="flex:1; height:70%; background:var(--admin-primary); border-radius:4px; opacity:0.8"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:10px; color:#94a3b8; font-size:10px">
+            <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Recent Farmer Activity</h2>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Farmer</th><th>Location</th><th>Crop</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Raju Patil</td><td>Nashik</td><td>Tomato</td><td><span style="color:#4ade80">● Active</span></td></tr>
+              <tr><td>Suresh Kumar</td><td>Pune</td><td>Wheat</td><td><span style="color:#4ade80">● Active</span></td></tr>
+              <tr><td>Anil Rao</td><td>Nagpur</td><td>Cotton</td><td><span style="color:#64748b">○ Offline</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- INVENTORY -->
+      <section class="page" id="admin-inventory" style="display:none">
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">➕ Add New Product</h2>
+          </div>
+          <div class="admin-form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:15px">
+            <div>
+              <div class="form-group">
+                <label class="form-label">Product Name</label>
+                <input type="text" class="form-input" id="adminProdName" placeholder="e.g. Hybrid Seeds">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="adminProdCat">
+                  <option value="Seeds">Seeds</option>
+                  <option value="Fertilizer">Fertilizer</option>
+                  <option value="Pesticide">Pesticide</option>
+                  <option value="Tools">Tools</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Price (₹)</label>
+                <input type="number" class="form-input" id="adminProdPrice" value="500">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" id="adminProdDesc" rows="5"></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="adminAddProduct()" style="width:100%; height:48px; margin-top:10px">
+                Publish to Marketplace
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">📦 Current Inventory</h2>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Icon</th><th>Name</th><th>Category</th><th>Price</th></tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+              <tr><td colspan="4" style="text-align:center">Loading data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    function toggleAdminSidebar() {
+      document.querySelector('.sidebar').classList.toggle('open');
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem('nr_admin');
+      window.location.href = 'admin_login.html';
+    }
+
+    function showAdminPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const page = document.getElementById('admin-' + id);
+      if (page) page.style.display = 'block';
+      const navs = document.querySelectorAll('.nav-item');
+      if (id === 'overview') navs[0].classList.add('active');
+      if (id === 'inventory') navs[1].classList.add('active');
+      if (id === 'inventory') loadInventory();
+    }
+
+    async function loadInventory() {
+      try {
+        const res = await fetch('http://localhost:3000/api/products');
+        const prods = await res.json();
+        document.getElementById('statProducts').textContent = prods.length;
+        const tableBody = document.getElementById('inventoryTableBody');
+        if (tableBody) {
+          tableBody.innerHTML = prods.map(p => `
+            <tr>
+              <td>${p.image || '📦'}</td>
+              <td style="font-weight:600">${p.name}</td>
+              <td style="color:#94a3b8">${p.category}</td>
+              <td style="color:#38bdf8; font-weight:700">₹${p.price}</td>
+            </tr>
+          `).join('');
+        }
+      } catch(e) {}
+    }
+
+    async function adminAddProduct() {
+      const name = document.getElementById('adminProdName').value;
+      const cat = document.getElementById('adminProdCat').value;
+      const price = document.getElementById('adminProdPrice').value;
+      const desc = document.getElementById('adminProdDesc').value;
+      if(!name) return alert('Name required');
+      try {
+        const res = await fetch('http://localhost:3000/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, category: cat, price, description: desc })
+        });
+        if(res.ok) { alert('Product published!'); loadInventory(); }
+      } catch(e) { alert('Demo: Product saved!'); }
+    }
+    
+    // Initial Load
+    loadInventory();
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Namma Rytha — AI Smart Farming",
+  "short_name": "Namma Rytha",
+  "description": "AI-powered smart farming platform for Indian farmers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
