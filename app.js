@@ -206,6 +206,16 @@ function showPage(id) {
   if (id === 'dashboard') generateRecommendations();
   if (id === 'products') loadProducts();
   if (id === 'settings') renderSettings();
+
+  // Update bottom nav active state
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.classList.remove('active');
+    // Check if the onclick attribute contains the id
+    const onclickAttr = item.getAttribute('onclick');
+    if (onclickAttr && onclickAttr.includes(`showPage('${id}')`)) {
+      item.classList.add('active');
+    }
+  });
 }
 
 document.querySelectorAll('.nav-item').forEach(item =>
