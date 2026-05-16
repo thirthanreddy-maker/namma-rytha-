@@ -6,7 +6,7 @@ const path = require('path');
 const { OAuth2Client } = require('google-auth-library');
 
 // ── PASTE YOUR GOOGLE CLIENT ID HERE ──
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '389100486246-iois5amf28nltsiiqajo6n1bv7v0siqp.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const app = express();

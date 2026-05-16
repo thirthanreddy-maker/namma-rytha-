@@ -11,4 +11,4 @@ services:
       - key: NODE_VERSION
         value: 18.20.0
       - key: GOOGLE_CLIENT_ID
-        value: 389100486246-iois5amf28nltsiiqajo6n1bv7v0siqp.apps.googleusercontent.com
+        value: 166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com
