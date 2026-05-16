@@ -1806,4 +1806,32 @@ body {
   .forecast-grid {
     grid-template-columns: 1fr;
   }
+  .topbar-right .btn-icon:not(#themeToggleBtn), 
+  .topbar-right .time-display {
+    display: none !important;
+  }
+  .topbar {
+    gap: 8px;
+  }
+  .weather-pill span, .alert-pill span {
+    display: none;
+  }
+  .weather-pill i, .alert-pill i {
+    margin-right: 0;
+  }
+  .page-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .pages-container {
+    padding: 10px;
+  }
+  .topbar {
+    padding: 0 10px;
+  }
+  .stat-card {
+    padding: 15px;
+  }
 }
