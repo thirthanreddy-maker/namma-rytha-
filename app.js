@@ -167,6 +167,17 @@ const MARKET_DATA = [
   { crop: '🎋 Sugarcane', price: 315, msp: 315, change: 0, trend: 'flat' },
 ];
 
+function simulateMarketFluctuation() {
+  MARKET_DATA.forEach(item => {
+    const fluctuation = (Math.random() - 0.5) * 10;
+    item.price = Math.max(item.msp === '—' ? 100 : item.msp, Math.round(item.price + fluctuation));
+    item.change = Math.round(fluctuation);
+    item.trend = fluctuation > 0 ? 'up' : fluctuation < 0 ? 'down' : 'flat';
+  });
+  if (state.currentPage === 'market') renderMarketTable();
+}
+setInterval(simulateMarketFluctuation, 10000); // Fluctuate every 10s for dynamic feel
+
 
 
 const ACHIEVEMENTS = [
@@ -206,6 +217,10 @@ function showPage(id) {
   if (id === 'dashboard') generateRecommendations();
   if (id === 'products') loadProducts();
   if (id === 'settings') renderSettings();
+  if (id === 'feedback') renderFeedbackPage();
+
+  // Scroll to top of the new page
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Update bottom nav active state
   document.querySelectorAll('.bottom-nav-item').forEach(item => {
@@ -674,7 +689,7 @@ function applyWeatherToUI(data) {
 async function fetchWeather() {
   const cityInput = document.getElementById('cityInput');
   const raw = cityInput ? cityInput.value.trim() : '';
-  if (!raw) { useGPS(); return; }
+  if (!raw) { autoLocateWeather(); return; }
 
   const cwIcon = document.getElementById('cwIcon');
   if (cwIcon) cwIcon.textContent = '⏳';
@@ -693,15 +708,112 @@ async function fetchWeather() {
   }
 }
 
+// ─── IP-BASED GEOLOCATION FALLBACK ────────────────────────────────────────────
+async function ipGeolocate() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    if (data && data.latitude && data.longitude) {
+      return { lat: data.latitude, lon: data.longitude, city: (data.city || 'Your Location') + (data.region ? ', ' + data.region : '') };
+    }
+  } catch (e) {
+    console.warn('IP geolocation failed:', e);
+  }
+  return null;
+}
+
+// ─── AUTO-LOCATE WEATHER (GPS → IP fallback) ─────────────────────────────────
+let _autoLocateInProgress = false;
+async function autoLocateWeather() {
+  if (_autoLocateInProgress) return;
+  _autoLocateInProgress = true;
+
+  const cwIcon = document.getElementById('cwIcon');
+  const cwDesc = document.getElementById('cwDesc');
+  const cityInput = document.getElementById('cityInput');
+  if (cwIcon) cwIcon.textContent = '📡';
+  if (cwDesc) cwDesc.textContent = 'Auto-detecting your location...';
+  if (cityInput) cityInput.placeholder = '📡 Auto-detecting your location...';
+  showToast('📡', 'Auto-detecting your location for weather...');
+
+  // Helper: load weather from IP geolocation
+  async function loadFromIP() {
+    const ipData = await ipGeolocate();
+    if (ipData) {
+      if (cityInput) {
+        cityInput.value = ipData.city.split(',')[0];
+        cityInput.placeholder = '📡 Auto-detected! Change anytime.';
+      }
+      const data = await fetchWeatherByCoords(ipData.lat, ipData.lon, ipData.city);
+      applyWeatherToUI(data);
+      showToast('📍', '✅ Weather auto-detected for ' + ipData.city);
+    } else {
+      if (cwIcon) cwIcon.textContent = '📍';
+      if (cwDesc) cwDesc.textContent = 'Enter a city to see weather';
+      if (cityInput) cityInput.placeholder = 'Type your city name (e.g. Delhi, Hyderabad...)';
+      showToast('⚠️', 'Could not detect location. Please enter a city manually.');
+    }
+    _autoLocateInProgress = false;
+  }
+
+  if (!('geolocation' in navigator)) {
+    // No GPS — go straight to IP
+    await loadFromIP();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      try {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const cityLabel = await reverseGeocode(lat, lon);
+        if (cityInput) {
+          cityInput.value = cityLabel.split(',')[0];
+          cityInput.placeholder = '📡 Auto-detected! Change anytime.';
+        }
+        const data = await fetchWeatherByCoords(lat, lon, cityLabel);
+        applyWeatherToUI(data);
+        showToast('📍', '✅ Live weather loaded for ' + cityLabel);
+      } catch (e) {
+        showToast('⚠️', 'GPS found but weather fetch failed. Trying IP...');
+        await loadFromIP();
+      }
+      _autoLocateInProgress = false;
+    },
+    async (err) => {
+      console.warn('GPS denied/failed, falling back to IP geolocation:', err.message);
+      await loadFromIP();
+    },
+    { timeout: 10000, enableHighAccuracy: true, maximumAge: 300000 }
+  );
+}
+
 async function useGPS() {
-  showToast('📡', 'Getting your location...');
+  showToast('📡', 'Auto-detecting your location...');
   const cwIcon = document.getElementById('cwIcon');
   const cwDesc = document.getElementById('cwDesc');
   if (cwIcon) cwIcon.textContent = '📡';
-  if (cwDesc) cwDesc.textContent = 'Detecting location...';
+  if (cwDesc) cwDesc.textContent = 'Auto-detecting location...';
+
+  // Helper: IP fallback
+  async function fallbackToIP() {
+    showToast('🌐', 'Using IP-based detection...');
+    const ipData = await ipGeolocate();
+    if (ipData) {
+      const cityInput = document.getElementById('cityInput');
+      if (cityInput) cityInput.value = ipData.city.split(',')[0];
+      const data = await fetchWeatherByCoords(ipData.lat, ipData.lon, ipData.city);
+      applyWeatherToUI(data);
+      showToast('📍', '✅ Weather auto-detected for ' + ipData.city);
+    } else {
+      showToast('⚠️', 'Could not detect location. Please enter a city manually.');
+      if (cwIcon) cwIcon.textContent = '📍';
+      if (cwDesc) cwDesc.textContent = 'Enter a city to see weather';
+    }
+  }
 
   if (!('geolocation' in navigator)) {
-    showToast('⚠️', 'GPS not supported on this device.');
+    await fallbackToIP();
     return;
   }
 
@@ -714,15 +826,15 @@ async function useGPS() {
         if (cityInput) cityInput.value = cityLabel.split(',')[0];
         const data = await fetchWeatherByCoords(lat, lon, cityLabel);
         applyWeatherToUI(data);
-        showToast('📍', 'Live weather for your location: ' + cityLabel);
+        showToast('📍', '✅ Live weather for your location: ' + cityLabel);
       } catch (e) {
-        showToast('⚠️', 'Could not fetch live weather. Check internet.');
-        console.warn('GPS weather error:', e);
+        showToast('⚠️', 'GPS found but weather failed. Trying IP...');
+        await fallbackToIP();
       }
     },
-    (err) => {
-      showToast('⚠️', 'GPS denied. Enter your city manually.');
-      console.warn('GPS error:', err.message);
+    async (err) => {
+      console.warn('GPS denied, falling back to IP:', err.message);
+      await fallbackToIP();
     },
     { timeout: 10000, enableHighAccuracy: false }
   );
@@ -1043,46 +1155,28 @@ function processVoiceCmd(t) {
   }, 600);
 }
 
-// ─── MODALS ───────────────────────────────────────────────────────────────────
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function sendWhatsApp() { document.getElementById('whatsappModal').classList.add('open'); }
-function confirmWhatsApp() {
-  const num = document.getElementById('waNumber').value.trim();
-  if (!num) { showToast('⚠️', 'Enter a phone number'); return; }
-  const parts = [];
-  if (document.getElementById('waIrr')?.checked) parts.push('💧 Soil Moisture: 42% — Monitor irrigation');
-  if (document.getElementById('waFert')?.checked) parts.push('🌿 Fertilizer: Apply Urea 2.5 kg/acre this week');
-  if (document.getElementById('waWeather')?.checked) parts.push('☁️ Weather: 30% rain chance tomorrow');
-  if (document.getElementById('waAlerts')?.checked) parts.push('🚨 3 Active alerts on your farm');
-  const text = encodeURIComponent('🌱 *AgroSmart Farm Report*\n\n' + parts.join('\n') + '\n\n_Sent from AgroSmart AI_');
-  window.open(`https://wa.me/${num.replace(/\D/g, '')}?text=${text}`, '_blank');
-  closeModal('whatsappModal');
-  showToast('📱', 'WhatsApp message sent!');
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  const overlay = document.getElementById('modalOverlay');
+  if (modal) modal.classList.remove('show');
+  if (overlay) overlay.classList.remove('show');
 }
 
 function showProfileModal() {
-  document.getElementById('profileLang').value = state.user.lang || 'en';
-  document.getElementById('profileModal').classList.add('open');
-}
-function saveProfile() {
-  const name = document.getElementById('profileName').value;
-  const loc = document.getElementById('profileLoc').value;
-  const lang = document.getElementById('profileLang').value;
-
-  document.getElementById('farmerName').textContent = name;
-  document.getElementById('farmerLoc').textContent = '📍 ' + loc;
-
-  // Merge with existing user data to preserve ID/email
-  state.user = { ...state.user, name, location: loc, lang: lang };
-  localStorage.setItem('nr_user', JSON.stringify(state.user));
-
-  // Trigger language change
-  setLang(lang);
-
-  showToast('💾', 'Profile updated successfully!');
-  saveFarmData();
-  closeModal('profileModal');
+  const modal = document.getElementById('profileModal');
+  const overlay = document.getElementById('modalOverlay');
+  if (modal && overlay) {
+    modal.classList.add('show');
+    overlay.classList.add('show');
+    
+    // Populate fields from state.user
+    document.getElementById('editFirstName').value = state.user.name?.split(' ')[0] || state.user.firstName || '';
+    document.getElementById('editLastName').value = state.user.name?.split(' ').slice(1).join(' ') || state.user.lastName || '';
+    document.getElementById('editLocation').value = state.user.location || '';
+    document.getElementById('editPhone').value = state.user.phone || '';
+    document.getElementById('editArea').value = state.user.area || '';
+    document.getElementById('editCrop').value = state.user.crop || '';
+  }
 }
 
 function exportReport() {
@@ -1114,20 +1208,29 @@ function exportReport() {
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
-function showToast(icon, msg) {
-  const t = document.getElementById('toast');
-  const ico = document.getElementById('toastIcon');
-  const txt = document.getElementById('toastMsg');
-  if (!t) return;
-  ico.textContent = icon; txt.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+function showToast(icon, message) {
+  const container = document.getElementById('toastContainer');
+  if (!container) {
+    console.log(`Toast fallback: ${icon} ${message}`);
+    return;
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(50px)';
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
 }
 
 // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('collapsed');
-  document.getElementById('main').classList.toggle('sidebar-collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  sidebar.classList.toggle('collapsed');
+  main.classList.toggle('sidebar-collapsed');
 }
 
 // ─── SIMULATE LIVE DATA ───────────────────────────────────────────────────────
@@ -1488,205 +1591,6 @@ function toggleTheme() {
   if (state.currentPage === 'settings') renderSettings();
 }
 
-// ─── SETTINGS PAGE ────────────────────────────────────────────────────────────
-function renderSettings() {
-  const page = document.getElementById('page-settings');
-  if (!page) return;
-  const isDark = appSettings.theme === 'dark';
-  const anim = appSettings.animations;
-  const compact = appSettings.compactMode;
-  const farmBg = appSettings.farmBg;
-
-  page.innerHTML = `
-    <div class="page-hero" style="background:linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.03));border-color:rgba(74,222,128,0.18)">
-      <div class="hero-icon">⚙️</div>
-      <div>
-        <h2>App Settings</h2>
-        <p>Customize your Namma Rytha experience</p>
-      </div>
-    </div>
-
-    <div class="settings-grid">
-
-      <!-- Appearance -->
-      <div class="panel">
-        <div class="settings-section-title">🎨 Appearance</div>
-        <div class="theme-cards">
-          <div class="theme-card ${isDark ? 'active' : ''}" onclick="applyTheme('dark');renderSettings();showToast('🌙','Dark Mode On')">
-            <div class="theme-card-check">✓</div>
-            <div class="theme-card-preview dark-preview">
-              <div class="preview-sidebar"></div>
-              <div class="preview-content">
-                <div class="preview-bar"></div>
-                <div class="preview-bar accent"></div>
-                <div class="preview-bar" style="width:80%"></div>
-                <div class="preview-bar" style="width:55%"></div>
-              </div>
-            </div>
-            <div class="theme-card-name">🌙 Dark Mode</div>
-          </div>
-          <div class="theme-card ${!isDark ? 'active' : ''}" onclick="applyTheme('light');renderSettings();showToast('☀️','Light Mode On')">
-            <div class="theme-card-check">✓</div>
-            <div class="theme-card-preview light-preview">
-              <div class="preview-sidebar"></div>
-              <div class="preview-content">
-                <div class="preview-bar"></div>
-                <div class="preview-bar accent"></div>
-                <div class="preview-bar" style="width:80%"></div>
-                <div class="preview-bar" style="width:55%"></div>
-              </div>
-            </div>
-            <div class="theme-card-name">☀️ Light Mode</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dashboard options -->
-      <div class="panel">
-        <div class="settings-section-title">🌾 Dashboard</div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Farm Background Animation</div>
-            <div class="settings-row-desc">Wheat, leaves, fireflies on dashboard</div>
-          </div>
-          <div class="toggle-switch ${farmBg ? 'on' : ''}" onclick="toggleSetting('farmBg')"></div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">UI Animations</div>
-            <div class="settings-row-desc">Smooth page transitions and effects</div>
-          </div>
-          <div class="toggle-switch ${anim ? 'on' : ''}" onclick="toggleSetting('animations')"></div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Compact Mode</div>
-            <div class="settings-row-desc">Reduce spacing for more content</div>
-          </div>
-          <div class="toggle-switch ${compact ? 'on' : ''}" onclick="toggleSetting('compactMode')"></div>
-        </div>
-      </div>
-
-      <!-- Account -->
-      <div class="panel">
-        <div class="settings-section-title">👤 Account & App</div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Logged in as</div>
-            <div class="settings-row-desc">${state.user.username || 'Guest'} · ${state.user.email || 'No email'}</div>
-          </div>
-          <button class="refresh-btn" onclick="showProfileModal()">Edit Profile</button>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Language</div>
-            <div class="settings-row-desc">Current: ${getLangName()}</div>
-          </div>
-          <button class="refresh-btn" onclick="document.getElementById('langMenu').classList.toggle('show')">Change</button>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Desktop Application</div>
-            <div class="settings-row-desc">Install Namma Rytha as a standalone app</div>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Share App</div>
-            <div class="settings-row-desc">Share Namma Rytha with other farmers</div>
-          </div>
-          <button class="refresh-btn" onclick="shareApp()" style="color:#60a5fa; border-color:rgba(96,165,250,0.3); background:rgba(96,165,250,0.08);">📤 Share</button>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Refer a Friend</div>
-            <div class="settings-row-desc">Get a referral link and earn rewards</div>
-          </div>
-          <button class="refresh-btn" onclick="copyReferral()" style="color:#facc15; border-color:rgba(250,204,21,0.3); background:rgba(250,204,21,0.08);">🤝 Refer</button>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Logout</div>
-            <div class="settings-row-desc">Sign out of your account</div>
-          </div>
-          <button class="refresh-btn" style="color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.08)" onclick="doLogout()">⏻ Logout</button>
-        </div>
-      </div>
-
-      <!-- About -->
-      <div class="panel">
-        <div class="settings-section-title">ℹ️ About</div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">App Version</div>
-            <div class="settings-row-desc">Namma Rytha v2.0.0</div>
-          </div>
-          <span style="font-size:11px;padding:3px 10px;border-radius:50px;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2)">Stable</span>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">AI Engine</div>
-            <div class="settings-row-desc">Gemini 2.0 Flash + Smart Offline Mode</div>
-          </div>
-          <span style="font-size:11px;padding:3px 10px;border-radius:50px;background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.2)">Online</span>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Originality Score</div>
-            <div class="settings-row-desc">~79% original · Custom-built</div>
-          </div>
-          <span style="font-size:11px;padding:3px 10px;border-radius:50px;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2)">🟢 Original</span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Reset -->
-    <div class="panel" style="margin-top:4px">
-      <div class="panel-header">
-        <h2 class="panel-title">⚠️ Reset & Data</h2>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button class="btn btn-secondary" style="width:auto;padding:10px 20px" onclick="resetAllSettings()">↺ Reset All Settings</button>
-        <button class="btn btn-secondary" style="width:auto;padding:10px 20px;color:#f87171;border-color:rgba(248,113,113,0.2)" onclick="if(confirm('Clear all local data?')){localStorage.clear();location.reload();}">🗑️ Clear Local Data</button>
-      </div>
-    </div>`;
-}
-
-function getLangName() {
-  const names = { en: 'English', kn: 'ಕನ್ನಡ', hi: 'हिंदी', te: 'తెలుగు', ta: 'தமிழ்', mr: 'मराठी' };
-  return names[localStorage.getItem('nr_lang') || 'en'] || 'English';
-}
-
-function toggleSetting(key) {
-  appSettings[key] = !appSettings[key];
-  localStorage.setItem('nr_' + key.toLowerCase(), appSettings[key]);
-  if (key === 'farmBg') {
-    const fb = document.querySelector('.farm-bg');
-    if (fb) fb.style.display = appSettings.farmBg ? '' : 'none';
-  }
-  if (key === 'compactMode') {
-    document.body.classList.toggle('compact', appSettings.compactMode);
-  }
-  if (key === 'animations') {
-    document.body.classList.toggle('no-animations', !appSettings.animations);
-  }
-  renderSettings();
-  showToast('⚙️', key.replace(/([A-Z])/g, ' $1').trim() + ': ' + (appSettings[key] ? 'On' : 'Off'));
-}
-
-function resetAllSettings() {
-  ['nr_theme', 'nr_animations', 'nr_compact', 'nr_farmbg'].forEach(k => localStorage.removeItem(k));
-  appSettings.theme = 'dark'; appSettings.animations = true;
-  appSettings.compactMode = false; appSettings.farmBg = true;
-  applyTheme('dark');
-  const fb = document.querySelector('.farm-bg');
-  if (fb) fb.style.display = '';
-  document.body.classList.remove('compact', 'no-animations');
-  renderSettings();
-  showToast('↺', 'All settings reset to defaults');
-}
-
 // Init on load
 initTheme();
 
@@ -1859,39 +1763,632 @@ function showWishlist() {
 
 // ─── AUTO LOAD LIVE WEATHER ON STARTUP ───────────────────────────────────────
 (function initWeatherOnLoad() {
-  // Try GPS first; if denied, user can type city manually
+  // Always auto-detect location on startup for live weather
   setTimeout(() => {
-    const cityInput = document.getElementById('cityInput');
-    if (cityInput && cityInput.value.trim()) {
-      fetchWeather();
-    } else {
-      useGPS();
-    }
+    autoLocateWeather();
   }, 800);
 })();
 
-// ─── FEEDBACK LOGIC ──────────────────────────────────────────────────────────
-function setRating(n) {
-  state.currentRating = n;
-  const stars = document.querySelectorAll('#feedbackRating .star');
-  stars.forEach((s, i) => {
-    s.classList.toggle('active', i < n);
+
+// ─── PROFILE UPDATE ──────────────────────────────────────────────────────────
+async function updateProfile() {
+  const firstName = document.getElementById('editFirstName').value;
+  const lastName = document.getElementById('editLastName').value;
+  const location = document.getElementById('editLocation').value;
+  const area = document.getElementById('editArea').value;
+  const crop = document.getElementById('editCrop').value;
+  const phone = document.getElementById('editPhone').value;
+
+  const data = { id: state.user.id, firstName, lastName, location, area, crop, phone };
+
+  try {
+    const res = await fetch(`${CONFIG.API_BASE_URL}/api/user/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      state.user = { ...state.user, ...data, name: `${firstName} ${lastName}` };
+      localStorage.setItem('nr_user', JSON.stringify(state.user));
+      showToast('✅', 'Profile updated successfully!');
+      updateDashboardUser();
+      closeModal('profileModal');
+    }
+  } catch (e) {
+    showToast('❌', 'Failed to update profile');
+  }
+}
+
+function updateDashboardUser() {
+  const nameEl = document.getElementById('farmerName');
+  const locEl = document.getElementById('farmerLoc');
+  if (nameEl) nameEl.textContent = state.user.name || 'User';
+  if (locEl) locEl.textContent = '📍 ' + (state.user.location || 'Bengaluru, Karnataka');
+}
+
+// ─── FEEDBACK SUBMISSION ──────────────────────────────────────────────────────
+function setRating(r) {
+  state.currentRating = r;
+  // Update star buttons in both old and new feedback UI
+  document.querySelectorAll('.star-btn, .star-rating-btn').forEach((btn, i) => {
+    if (btn.classList.contains('star-rating-btn')) {
+      btn.classList.toggle('filled', i < r);
+      btn.textContent = '★';
+    } else {
+      btn.style.color = i < r ? 'var(--yellow-accent)' : 'var(--text-muted)';
+    }
+  });
+  // Update old star UI too
+  document.querySelectorAll('#feedbackRating .star').forEach((s, i) => {
+    s.classList.toggle('active', i < r);
   });
 }
 
-function submitFeedback() {
-  const cat = document.getElementById('feedbackCategory').value;
-  const msg = document.getElementById('feedbackComments').value.trim();
+function setMood(index) {
+  state.feedbackMood = index;
+  document.querySelectorAll('.mood-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+  });
+  // Auto-set rating from mood
+  const ratingMap = [1, 2, 3, 4, 5];
+  setRating(ratingMap[index] || 3);
+}
+
+function setFeedbackCategory(cat) {
+  state.feedbackCategory = cat;
+  document.querySelectorAll('.category-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.cat === cat);
+  });
+}
+
+function updateCharCount() {
+  const textarea = document.getElementById('feedbackMsg');
+  const counter = document.getElementById('charCount');
+  if (textarea && counter) {
+    const len = textarea.value.length;
+    counter.textContent = `${len}/500 characters`;
+    counter.style.color = len > 450 ? '#f87171' : len > 300 ? '#fbbf24' : 'var(--text-muted)';
+  }
+}
+
+async function submitFeedback() {
+  const msgEl = document.getElementById('feedbackMsg') || document.getElementById('feedbackComments');
+  const msg = msgEl ? msgEl.value.trim() : '';
 
   if (state.currentRating === 0) { showToast('⚠️', 'Please select a rating'); return; }
-  if (!msg) { showToast('⚠️', 'Please enter your comments'); return; }
+  if (!msg) { showToast('⚠️', 'Please enter your feedback message'); return; }
 
-  showToast('⏳', 'Sending feedback...');
-  setTimeout(() => {
-    showToast('✅', 'Thank you! Your feedback has been sent.');
-    // Reset form
-    setRating(0);
-    document.getElementById('feedbackComments').value = '';
-    showPage('dashboard');
-  }, 1200);
+  const btn = document.querySelector('.feedback-submit-btn');
+  if (btn) { btn.classList.add('sending'); btn.innerHTML = '⏳ Sending...'; }
+
+  const data = {
+    userId: state.user.id,
+    name: state.user.name || state.user.username,
+    email: state.user.email,
+    rating: state.currentRating,
+    mood: state.feedbackMood,
+    category: state.feedbackCategory || 'general',
+    message: msg
+  };
+
+  // Save to local feedback history
+  const history = JSON.parse(localStorage.getItem('nr_feedback_history') || '[]');
+  history.unshift({
+    ...data,
+    date: new Date().toISOString(),
+    status: 'pending'
+  });
+  localStorage.setItem('nr_feedback_history', JSON.stringify(history.slice(0, 10)));
+
+  try {
+    const res = await fetch(`${CONFIG.API_BASE_URL}/api/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showFeedbackSuccess();
+    } else {
+      showFeedbackSuccess(); // Show success anyway for local save
+    }
+  } catch (e) {
+    showFeedbackSuccess(); // Show success for local save even if API fails
+  }
 }
+
+function showFeedbackSuccess() {
+  const overlay = document.createElement('div');
+  overlay.className = 'feedback-success-overlay';
+  overlay.innerHTML = `
+    <div class="feedback-success-card">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Thank You!</div>
+      <div class="success-text">Your feedback has been received. We truly value your input and will use it to improve Namma Rytha for all farmers.</div>
+      <button class="success-close-btn" onclick="closeFeedbackSuccess()">✨ Continue Farming</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeFeedbackSuccess();
+  });
+}
+
+function closeFeedbackSuccess() {
+  const overlay = document.querySelector('.feedback-success-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.3s';
+    setTimeout(() => overlay.remove(), 300);
+  }
+  // Reset form
+  state.currentRating = 0;
+  state.feedbackMood = undefined;
+  state.feedbackCategory = 'general';
+  const msgEl = document.getElementById('feedbackMsg');
+  if (msgEl) msgEl.value = '';
+  renderFeedbackPage();
+}
+
+function getLangName() {
+  const names = { en: 'English', kn: 'ಕನ್ನಡ', hi: 'हिंदी', te: 'తెలుగు', ta: 'தமிழ்', mr: 'मराठी' };
+  return names[localStorage.getItem('nr_lang') || 'en'] || 'English';
+}
+
+function resetAllSettings() {
+  ['nr_theme', 'nr_animations', 'nr_compact', 'nr_farmbg'].forEach(k => localStorage.removeItem(k));
+  if (typeof appSettings !== 'undefined') {
+    appSettings.theme = 'dark';
+    appSettings.animations = true;
+    appSettings.compactMode = false;
+    appSettings.farmBg = true;
+  }
+  applyTheme('dark');
+  const fb = document.querySelector('.farm-bg');
+  if (fb) fb.style.display = '';
+  document.body.classList.remove('compact', 'no-animations');
+  renderSettings();
+  showToast('↺', 'All settings reset to defaults');
+}
+
+// ─── PREMIUM SETTINGS PAGE ───────────────────────────────────────────────────
+function renderSettings() {
+  const page = document.getElementById('page-settings');
+  if (!page) return;
+  const isDark = (appSettings?.theme || localStorage.getItem('nr_theme') || 'dark') === 'dark';
+  const anim = appSettings?.animations !== undefined ? appSettings.animations : localStorage.getItem('nr_ui_anim') !== 'false';
+  const compact = appSettings?.compactMode || localStorage.getItem('nr_compact') === 'true';
+  const farmBg = appSettings?.farmBg !== undefined ? appSettings.farmBg : localStorage.getItem('nr_bg_anim') !== 'false';
+  const userName = state.user.name || state.user.username || 'Farmer';
+  const userEmail = state.user.email || 'demo@nammarytha.in';
+  const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  page.innerHTML = `
+    <!-- Hero -->
+    <div class="settings-hero">
+      <div class="settings-hero-icon">⚙️</div>
+      <div>
+        <h2>App Settings</h2>
+        <p>Personalize your Namma Rytha farming experience</p>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="settings-profile-card">
+      <div class="profile-avatar">${initials}</div>
+      <div class="profile-info">
+        <div class="profile-name">${userName}</div>
+        <div class="profile-email">${userEmail}</div>
+        <div class="profile-badges">
+          <span class="profile-badge badge-pro">🌱 Farmer Pro</span>
+          <span class="profile-badge badge-verified">✓ Verified</span>
+        </div>
+      </div>
+      <button class="profile-edit-btn" onclick="showProfileModal()">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="settings-layout">
+      <!-- Left Column -->
+      <div>
+        <!-- Appearance Section -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon appearance">🎨</div>
+            <div>
+              <div class="section-title-text">Appearance</div>
+              <div class="section-subtitle">Theme & visual preferences</div>
+            </div>
+          </div>
+          <div class="theme-selector">
+            <div class="theme-option ${isDark ? 'active' : ''}" onclick="applyTheme('dark');renderSettings();showToast('🌙','Dark Mode activated')">
+              <div class="check-mark">✓</div>
+              <div class="theme-mini-preview dark-prev">
+                <div class="prev-side"></div>
+                <div class="prev-main">
+                  <div class="prev-line"></div>
+                  <div class="prev-line accent"></div>
+                  <div class="prev-line" style="width:75%"></div>
+                </div>
+              </div>
+              <div class="theme-option-label">🌙 Dark Mode</div>
+            </div>
+            <div class="theme-option ${!isDark ? 'active' : ''}" onclick="applyTheme('light');renderSettings();showToast('☀️','Light Mode activated')">
+              <div class="check-mark">✓</div>
+              <div class="theme-mini-preview light-prev">
+                <div class="prev-side"></div>
+                <div class="prev-main">
+                  <div class="prev-line"></div>
+                  <div class="prev-line accent"></div>
+                  <div class="prev-line" style="width:75%"></div>
+                </div>
+              </div>
+              <div class="theme-option-label">☀️ Light Mode</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon dashboard">🌾</div>
+            <div>
+              <div class="section-title-text">Dashboard</div>
+              <div class="section-subtitle">Animation & layout options</div>
+            </div>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">🎞️</div>
+              <div class="item-text">
+                <div class="item-label">Farm Background</div>
+                <div class="item-desc">Animated wheat, leaves & fireflies</div>
+              </div>
+            </div>
+            <div class="premium-toggle ${farmBg ? 'on' : ''}" onclick="toggleSettingNew('farmBg')"></div>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">✨</div>
+              <div class="item-text">
+                <div class="item-label">UI Animations</div>
+                <div class="item-desc">Smooth transitions & micro-interactions</div>
+              </div>
+            </div>
+            <div class="premium-toggle ${anim ? 'on' : ''}" onclick="toggleSettingNew('animations')"></div>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">📐</div>
+              <div class="item-text">
+                <div class="item-label">Compact Mode</div>
+                <div class="item-desc">Reduce spacing for more content</div>
+              </div>
+            </div>
+            <div class="premium-toggle ${compact ? 'on' : ''}" onclick="toggleSettingNew('compactMode')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Account Section -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon account">👤</div>
+            <div>
+              <div class="section-title-text">Account & App</div>
+              <div class="section-subtitle">Manage your profile & preferences</div>
+            </div>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">🌐</div>
+              <div class="item-text">
+                <div class="item-label">Language</div>
+                <div class="item-desc">Current: ${getLangName()}</div>
+              </div>
+            </div>
+            <button class="settings-action-btn primary" onclick="document.getElementById('langMenu').classList.toggle('show')">Change</button>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">📤</div>
+              <div class="item-text">
+                <div class="item-label">Share App</div>
+                <div class="item-desc">Invite other farmers to Namma Rytha</div>
+              </div>
+            </div>
+            <button class="settings-action-btn blue" onclick="shareApp()">📤 Share</button>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">🤝</div>
+              <div class="item-text">
+                <div class="item-label">Refer a Friend</div>
+                <div class="item-desc">Get a referral link & earn rewards</div>
+              </div>
+            </div>
+            <button class="settings-action-btn gold" onclick="copyReferral()">🤝 Refer</button>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">⏻</div>
+              <div class="item-text">
+                <div class="item-label">Logout</div>
+                <div class="item-desc">Sign out of your account</div>
+              </div>
+            </div>
+            <button class="settings-action-btn danger" onclick="doLogout()">⏻ Logout</button>
+          </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon about">ℹ️</div>
+            <div>
+              <div class="section-title-text">About</div>
+              <div class="section-subtitle">App information & status</div>
+            </div>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">📱</div>
+              <div class="item-text">
+                <div class="item-label">App Version</div>
+                <div class="item-desc">Namma Rytha v2.0.0</div>
+              </div>
+            </div>
+            <span class="status-pill pill-green">Stable</span>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">🤖</div>
+              <div class="item-text">
+                <div class="item-label">AI Engine</div>
+                <div class="item-desc">Gemini 2.0 Flash + Smart Offline</div>
+              </div>
+            </div>
+            <span class="status-pill pill-purple">Online</span>
+          </div>
+          <div class="settings-item-row">
+            <div class="settings-item-left">
+              <div class="item-icon-mini">🛡️</div>
+              <div class="item-text">
+                <div class="item-label">Originality Score</div>
+                <div class="item-desc">~79% original · Custom-built</div>
+              </div>
+            </div>
+            <span class="status-pill pill-green">🟢 Original</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section" style="border-color: rgba(248,113,113,0.15)">
+      <div class="settings-section-header">
+        <div class="section-icon danger">⚠️</div>
+        <div>
+          <div class="section-title-text">Reset & Data</div>
+          <div class="section-subtitle">Manage local storage & preferences</div>
+        </div>
+      </div>
+      <div style="padding:18px 22px;display:flex;gap:12px;flex-wrap:wrap">
+        <button class="settings-action-btn primary" onclick="resetAllSettings()">↺ Reset All Settings</button>
+        <button class="settings-action-btn danger" onclick="if(confirm('Clear all local data? This cannot be undone.')){localStorage.clear();location.reload();}">🗑️ Clear Local Data</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleSettingNew(key) {
+  if (typeof appSettings !== 'undefined') {
+    appSettings[key] = !appSettings[key];
+    localStorage.setItem('nr_' + key.toLowerCase(), appSettings[key]);
+    if (key === 'farmBg') {
+      const fb = document.querySelector('.farm-bg');
+      if (fb) fb.style.display = appSettings.farmBg ? '' : 'none';
+    }
+    if (key === 'compactMode') {
+      document.body.classList.toggle('compact', appSettings.compactMode);
+    }
+    if (key === 'animations') {
+      document.body.classList.toggle('no-animations', !appSettings.animations);
+    }
+  } else {
+    const current = localStorage.getItem('nr_' + key.toLowerCase());
+    const newVal = current === 'false' ? 'true' : current === 'true' ? 'false' : 'false';
+    localStorage.setItem('nr_' + key.toLowerCase(), newVal);
+  }
+  renderSettings();
+  showToast('⚙️', key.replace(/([A-Z])/g, ' $1').trim() + ' toggled');
+}
+
+function saveGeminiKey() {
+  const key = document.getElementById('geminiKeyInput').value;
+  localStorage.setItem('nr_gemini_key', key);
+  CONFIG.GEMINI_API_KEY = key;
+  showToast('✅', 'AI Key updated!');
+}
+
+function installApp() {
+  showToast('🖥️', 'Installing Namma Rytha...');
+}
+
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Namma Rytha',
+      text: 'Check out Namma Rytha — AI Smart Farming for Indian Farmers!',
+      url: window.location.href
+    }).catch(console.error);
+  } else {
+    navigator.clipboard?.writeText(window.location.href);
+    showToast('🔗', 'Link copied to clipboard!');
+  }
+}
+
+function referFriend() {
+  const code = 'NR-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  navigator.clipboard?.writeText(`Join Namma Rytha with my referral: ${code} — ${window.location.href}`);
+  showToast('🤝', `Referral code ${code} copied!`);
+}
+
+// Initial update
+updateDashboardUser();
+
+// ─── PREMIUM FEEDBACK PAGE ───────────────────────────────────────────────────
+function renderFeedbackPage() {
+  const container = document.getElementById('page-feedback');
+  if (!container) return;
+
+  const history = JSON.parse(localStorage.getItem('nr_feedback_history') || '[]').slice(0, 3);
+  const historyHtml = history.length > 0 ? history.map(fb => {
+    const date = new Date(fb.date);
+    const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const stars = '★'.repeat(fb.rating || 3) + '☆'.repeat(5 - (fb.rating || 3));
+    return `
+      <div class="past-feedback-item">
+        <div class="past-fb-header">
+          <div class="past-fb-stars">${stars}</div>
+          <div class="past-fb-date">${dateStr}</div>
+        </div>
+        <div class="past-fb-text">${fb.message?.slice(0, 80)}${fb.message?.length > 80 ? '...' : ''}</div>
+        <span class="past-fb-status ${fb.status === 'responded' ? 'status-responded' : 'status-pending'}">${fb.status === 'responded' ? '✅ Responded' : '⏳ Pending Review'}</span>
+      </div>
+    `;
+  }).join('') : '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px">No feedback submitted yet</div>';
+
+  container.innerHTML = `
+    <!-- Hero -->
+    <div class="feedback-hero">
+      <div class="feedback-hero-icon">💬</div>
+      <div>
+        <h2 style="font-size:22px;font-weight:700;color:var(--text-primary);font-family:'Space Grotesk',sans-serif;margin:0 0 4px">Share Your Feedback</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin:0">Your voice shapes the future of Namma Rytha for millions of farmers</p>
+      </div>
+    </div>
+
+    <div class="feedback-layout">
+      <!-- Main Form -->
+      <div class="feedback-form-card">
+        <!-- Mood Selector -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:0.5px">How are you feeling?</div>
+          <div class="mood-selector">
+            <div class="mood-btn" onclick="setMood(0)">
+              <span class="mood-emoji">😡</span>
+              <span class="mood-label">Awful</span>
+            </div>
+            <div class="mood-btn" onclick="setMood(1)">
+              <span class="mood-emoji">😕</span>
+              <span class="mood-label">Bad</span>
+            </div>
+            <div class="mood-btn" onclick="setMood(2)">
+              <span class="mood-emoji">😐</span>
+              <span class="mood-label">Okay</span>
+            </div>
+            <div class="mood-btn" onclick="setMood(3)">
+              <span class="mood-emoji">😊</span>
+              <span class="mood-label">Good</span>
+            </div>
+            <div class="mood-btn" onclick="setMood(4)">
+              <span class="mood-emoji">🤩</span>
+              <span class="mood-label">Amazing</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Star Rating -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:0.5px">Rate your experience</div>
+          <div class="star-rating">
+            ${[1,2,3,4,5].map(i => `<button class="star-rating-btn" onclick="setRating(${i})" onmouseover="previewRating(${i})" onmouseout="resetRatingPreview()">★</button>`).join('')}
+          </div>
+        </div>
+
+        <!-- Category Selection -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:0.5px">What's this about?</div>
+          <div class="category-chips">
+            <div class="category-chip active" data-cat="general" onclick="setFeedbackCategory('general')">🌾 General</div>
+            <div class="category-chip" data-cat="ui" onclick="setFeedbackCategory('ui')">🎨 Design</div>
+            <div class="category-chip" data-cat="ai" onclick="setFeedbackCategory('ai')">🤖 AI Features</div>
+            <div class="category-chip" data-cat="weather" onclick="setFeedbackCategory('weather')">☁️ Weather</div>
+            <div class="category-chip" data-cat="market" onclick="setFeedbackCategory('market')">📈 Market</div>
+            <div class="category-chip" data-cat="bug" onclick="setFeedbackCategory('bug')">🐛 Bug Report</div>
+          </div>
+        </div>
+
+        <!-- Message -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Your message</div>
+          <textarea class="feedback-textarea" id="feedbackMsg" placeholder="Tell us what you love, what needs improvement, or report a bug..." maxlength="500" oninput="updateCharCount()"></textarea>
+          <div class="char-count" id="charCount">0/500 characters</div>
+        </div>
+
+        <!-- Submit -->
+        <button class="feedback-submit-btn" onclick="submitFeedback()">
+          🚀 Send Feedback
+        </button>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <!-- Tips Card -->
+        <div class="feedback-tips-card" style="margin-bottom:20px">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;font-family:'Space Grotesk',sans-serif">💡 Feedback Tips</div>
+          <div class="feedback-tip-item">
+            <div class="feedback-tip-icon" style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2)">✅</div>
+            <div class="feedback-tip-text">Be specific about features you love or find confusing</div>
+          </div>
+          <div class="feedback-tip-item">
+            <div class="feedback-tip-icon" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2)">📸</div>
+            <div class="feedback-tip-text">Mention the exact page or tool if reporting a bug</div>
+          </div>
+          <div class="feedback-tip-item">
+            <div class="feedback-tip-icon" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2)">💡</div>
+            <div class="feedback-tip-text">Share ideas for new features that would help your farming</div>
+          </div>
+          <div class="feedback-tip-item">
+            <div class="feedback-tip-icon" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2)">🌐</div>
+            <div class="feedback-tip-text">Tell us if you'd like the app in your local language</div>
+          </div>
+        </div>
+
+        <!-- Past Feedback -->
+        <div class="feedback-tips-card">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px;font-family:'Space Grotesk',sans-serif">📋 Your Past Feedback</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">${history.length} submission${history.length !== 1 ? 's' : ''}</div>
+          <div class="past-feedback-list">
+            ${historyHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Initialize default state
+  state.feedbackCategory = state.feedbackCategory || 'general';
+}
+
+function previewRating(n) {
+  document.querySelectorAll('.star-rating-btn').forEach((btn, i) => {
+    btn.style.color = i < n ? '#fbbf24' : 'rgba(255,255,255,0.12)';
+    btn.style.filter = i < n ? 'drop-shadow(0 0 6px rgba(251,191,36,0.4))' : 'none';
+  });
+}
+
+function resetRatingPreview() {
+  const r = state.currentRating || 0;
+  document.querySelectorAll('.star-rating-btn').forEach((btn, i) => {
+    const filled = i < r;
+    btn.classList.toggle('filled', filled);
+    btn.style.color = filled ? '#fbbf24' : 'rgba(255,255,255,0.12)';
+    btn.style.filter = filled ? 'drop-shadow(0 0 6px rgba(251,191,36,0.4))' : 'none';
+  });
+}
+

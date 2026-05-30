@@ -6,7 +6,7 @@ const path = require('path');
 const { OAuth2Client } = require('google-auth-library');
 
 // ── PASTE YOUR GOOGLE CLIENT ID HERE ──
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '12676963216-e3sg11s2rrpkjjs1qic2h0r3vb7n7h55.apps.googleusercontent.com';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const app = express();
@@ -153,6 +153,70 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// In-memory store for OTPs with expiration (10 minutes)
+const otpStore = {};
+
+// Forgot Password API
+app.post('/api/forgot-password', (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    db.get(`SELECT * FROM users WHERE email = ?`, [email], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'No account found with this email address.' });
+
+        // Generate a 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        
+        // Save to temporary memory store
+        otpStore[email] = {
+            otp: otp,
+            expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+        };
+
+        console.log(`[RESET PASSWORD] OTP for ${email} is ${otp}`);
+
+        // Return OTP for easy local testing, simulated OTP
+        res.json({
+            success: true,
+            message: 'A 4-digit verification code has been generated.',
+            otp: otp // Return for ease of testing in this demo environment
+        });
+    });
+});
+
+// Reset Password API
+app.post('/api/reset-password', (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ error: 'Email, OTP, and new password are required.' });
+    }
+
+    const record = otpStore[email];
+    if (!record) {
+        return res.status(400).json({ error: 'No active password reset request found.' });
+    }
+
+    if (Date.now() > record.expires) {
+        delete otpStore[email];
+        return res.status(400).json({ error: 'Verification code has expired.' });
+    }
+
+    if (record.otp !== otp) {
+        return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+
+    // Update user password
+    const sql = `UPDATE users SET password = ? WHERE email = ?`;
+    db.run(sql, [newPassword, email], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // Clear OTP
+        delete otpStore[email];
+        res.json({ success: true, message: 'Password updated successfully!' });
+    });
+});
+
 // ── GOOGLE SIGN-IN ──
 app.post('/api/google-auth', async (req, res) => {
     const { credential } = req.body;
@@ -215,6 +279,40 @@ app.post('/api/google-auth', async (req, res) => {
         console.error('Google token verification failed:', err.message);
         res.status(401).json({ error: 'Invalid Google token. Ensure your Client ID is correct.' });
     }
+});
+
+// User Profile Update
+app.post('/api/user/update', (req, res) => {
+    const { id, firstName, lastName, location, area, crop, phone } = req.body;
+    if (!id) return res.status(400).json({ error: 'User ID is required' });
+
+    const sql = `UPDATE users SET firstName = ?, lastName = ?, location = ?, area = ?, crop = ?, phone = ? WHERE id = ?`;
+    db.run(sql, [firstName, lastName, location, area, crop, phone, id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Profile updated successfully' });
+    });
+});
+
+// Feedback API
+db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
+        name TEXT,
+        email TEXT,
+        rating INTEGER,
+        message TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+});
+
+app.post('/api/feedback', (req, res) => {
+    const { userId, name, email, rating, message } = req.body;
+    const sql = `INSERT INTO feedback (userId, name, email, rating, message) VALUES (?, ?, ?, ?, ?)`;
+    db.run(sql, [userId, name, email, rating, message], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, id: this.lastID });
+    });
 });
 
 app.post('/api/products', (req, res) => {

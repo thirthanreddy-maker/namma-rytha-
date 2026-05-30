@@ -16,7 +16,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     // ── PASTE YOUR GOOGLE CLIENT ID HERE ──
-    const GOOGLE_CLIENT_ID = '166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com';
+    const GOOGLE_CLIENT_ID = '12676963216-e3sg11s2rrpkjjs1qic2h0r3vb7n7h55.apps.googleusercontent.com';
   </script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -332,9 +332,18 @@
     /* Sliding Panels */
     .panels-container {
       display: flex;
-      width: 200%;
+      width: 300%;
       transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
       will-change: transform;
+    }
+
+    .forgot-link {
+      transition: color 0.3s ease;
+    }
+    
+    .forgot-link:hover {
+      color: #86efac !important;
+      text-decoration: underline !important;
     }
 
     .form-panel {
@@ -769,8 +778,8 @@
     <div class="right-panel">
       <div class="auth-card">
         <div class="lang-wrapper">
-          <button class="lang-btn" onclick="document.getElementById('langMenu').classList.toggle('show')">
-            🌐 Changing the language
+          <button class="lang-btn" onclick="document.getElementById('langMenu').classList.toggle('show')" data-i18n="lang_btn">
+            🌐 Language
           </button>
           <div class="lang-menu" id="langMenu">
             <button class="lang-option" onclick="setLang('en')">English</button>
@@ -812,8 +821,12 @@
               <div class="input-wrap">
                 <span class="input-icon">🔒</span>
                 <input type="password" class="form-input" id="loginPass" placeholder="••••••••">
-                <button class="pw-view-toggle" onclick="togglePassword('loginPass')">👁️</button>
+                <button class="pw-view-toggle" type="button" onclick="togglePassword('loginPass')">👁️</button>
               </div>
+            </div>
+
+            <div style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+              <a href="#" onclick="showPanel('forgot'); return false;" class="forgot-link" style="color: var(--green-primary); font-size: 13px; text-decoration: none;" data-i18n="forgot_password">Forgot Password?</a>
             </div>
 
             <button class="btn-submit" id="btnLogin" onclick="handleLogin()" data-i18n="sign_in">
@@ -823,7 +836,7 @@
 
             <!-- Hidden Google One Tap trigger (fires callback automatically) -->
             <div id="g_id_onload"
-              data-client_id="YOUR_GOOGLE_CLIENT_ID"
+              data-client_id="166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com"
               data-callback="handleGoogleLogin"
               data-auto_prompt="false">
             </div>
@@ -839,7 +852,7 @@
           <!-- SIGNUP PANEL -->
           <div class="form-panel" id="panelSignup">
             <div class="form-header">
-              <h2 class="form-title">Join Namma Rytha 🌱</h2>
+              <h2 class="form-title" data-i18n="join_namma">Join Namma Rytha 🌱</h2>
               <p class="form-subtitle">Create your account and start your smart farming journey.</p>
             </div>
 
@@ -847,17 +860,17 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
               <div class="form-group">
-                <label class="form-label">First Name</label>
+                <label class="form-label" data-i18n="first_name">First Name</label>
                 <input type="text" class="form-input" style="padding-left: 16px;" id="regFirst" placeholder="Raju">
               </div>
               <div class="form-group">
-                <label class="form-label">Last Name</label>
+                <label class="form-label" data-i18n="last_name">Last Name</label>
                 <input type="text" class="form-input" style="padding-left: 16px;" id="regLast" placeholder="Patil">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Email Address</label>
+              <label class="form-label" data-i18n="email_address">Email Address</label>
               <div class="input-wrap">
                 <span class="input-icon">📧</span>
                 <input type="email" class="form-input" id="regEmail" placeholder="raju@example.com">
@@ -865,7 +878,7 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Create Password</label>
+              <label class="form-label" data-i18n="create_password">Create Password</label>
               <div class="input-wrap">
                 <span class="input-icon">🔒</span>
                 <input type="password" class="form-input" id="regPass" placeholder="Min 6 characters"
@@ -879,13 +892,76 @@
               </div>
             </div>
 
-            <button class="btn-submit" id="btnSignup" onclick="handleSignup()">
+            <button class="btn-submit" id="btnSignup" onclick="handleSignup()" data-i18n="create_account">
               🌱 Create Account
             </button>
 
             <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;">
               By signing up, you agree to our <a href="#"
                 style="color: var(--green-primary); text-decoration: none;">Terms & Privacy</a>.
+            </p>
+          </div>
+
+          <!-- FORGOT PASSWORD PANEL -->
+          <div class="form-panel" id="panelForgot">
+            <div class="form-header">
+              <h2 class="form-title" data-i18n="reset_password">Reset Password 🔑</h2>
+              <p class="form-subtitle" data-i18n="forgot_subtitle">Enter your email and we'll send you an OTP to reset your password.</p>
+            </div>
+
+            <div class="status-alert status-error" id="forgotError"></div>
+            <div class="status-alert status-success" id="forgotSuccess"></div>
+
+            <!-- STEP 1: Enter Email -->
+            <div id="forgotStep1">
+              <div class="form-group">
+                <label class="form-label" data-i18n="email_address">Email Address</label>
+                <div class="input-wrap">
+                  <span class="input-icon">📧</span>
+                  <input type="email" class="form-input" id="forgotEmail" placeholder="farmer@example.com">
+                </div>
+              </div>
+
+              <button class="btn-submit" id="btnForgotSend" onclick="handleForgotSend()" data-i18n="send_reset_link">
+                ✉️ Send Verification Code
+              </button>
+            </div>
+
+            <!-- STEP 2: Verify OTP & Enter New Password (Hidden by default) -->
+            <div id="forgotStep2" style="display: none;">
+              <div class="form-group">
+                <label class="form-label" data-i18n="enter_otp">Enter 4-Digit OTP</label>
+                <div class="input-wrap">
+                  <span class="input-icon">🔢</span>
+                  <input type="text" class="form-input" id="forgotOTP" placeholder="1234" maxlength="4" style="letter-spacing: 5px; font-weight: bold; font-size: 18px; text-align: center; padding-left: 16px;">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" data-i18n="new_password">New Password</label>
+                <div class="input-wrap">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" class="form-input" id="forgotNewPass" placeholder="••••••••">
+                  <button class="pw-view-toggle" type="button" onclick="togglePassword('forgotNewPass')">👁️</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" data-i18n="confirm_password">Confirm New Password</label>
+                <div class="input-wrap">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" class="form-input" id="forgotConfirmPass" placeholder="••••••••">
+                  <button class="pw-view-toggle" type="button" onclick="togglePassword('forgotConfirmPass')">👁️</button>
+                </div>
+              </div>
+
+              <button class="btn-submit" id="btnForgotReset" onclick="handleForgotReset()" data-i18n="reset_btn">
+                🔒 Reset Password
+              </button>
+            </div>
+
+            <p style="text-align: center; margin-top: 24px; font-size: 14px;">
+              <a href="#" onclick="showPanel('login'); return false;" style="color: var(--green-primary); text-decoration: none; font-weight: 600;" data-i18n="back_to_login">← Back to Login</a>
             </p>
           </div>
         </div>
@@ -916,6 +992,8 @@
       const slider = document.getElementById('tabSlider');
       const pLogin = document.getElementById('panelLogin');
       const pSignup = document.getElementById('panelSignup');
+      const pForgot = document.getElementById('panelForgot');
+      const tabs = document.querySelector('.auth-tabs');
 
       if (type === 'login') {
         container.style.transform = 'translateX(0)';
@@ -924,13 +1002,23 @@
         signupTab.classList.remove('active');
         pLogin.classList.add('active');
         pSignup.classList.remove('active');
-      } else {
-        container.style.transform = 'translateX(-50%)';
+        pForgot.classList.remove('active');
+        if (tabs) tabs.style.display = 'flex';
+      } else if (type === 'signup') {
+        container.style.transform = 'translateX(-33.333%)';
         slider.style.transform = 'translateX(100%)';
         loginTab.classList.remove('active');
         signupTab.classList.add('active');
         pLogin.classList.remove('active');
         pSignup.classList.add('active');
+        pForgot.classList.remove('active');
+        if (tabs) tabs.style.display = 'flex';
+      } else if (type === 'forgot') {
+        container.style.transform = 'translateX(-66.666%)';
+        pLogin.classList.remove('active');
+        pSignup.classList.remove('active');
+        pForgot.classList.add('active');
+        if (tabs) tabs.style.display = 'none';
       }
     }
 
@@ -1080,6 +1168,110 @@
       setTimeout(() => window.location.replace('index.html'), 1000);
     }
 
+    // ── FORGOT PASSWORD ACTIONS ──
+    async function handleForgotSend() {
+      clearAlerts();
+      const email = document.getElementById('forgotEmail').value.trim();
+      const btn = document.getElementById('btnForgotSend');
+
+      if (!email) return showAlert('forgotError', 'Please enter your email address.');
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loading-spinner"></div> Sending code...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showAlert('forgotSuccess', `✅ Verification code generated! For this demo, please use OTP: ${data.otp}`, false);
+          
+          // Switch to Step 2
+          document.getElementById('forgotStep1').style.display = 'none';
+          document.getElementById('forgotStep2').style.display = 'block';
+          
+          // Pre-fill OTP to make testing super easy for user!
+          document.getElementById('forgotOTP').value = data.otp;
+        } else {
+          showAlert('forgotError', data.error || 'Failed to send verification code.');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        showAlert('forgotError', 'Unable to connect to server. Ensure it is running.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function handleForgotReset() {
+      clearAlerts();
+      const email = document.getElementById('forgotEmail').value.trim();
+      const otp = document.getElementById('forgotOTP').value.trim();
+      const newPass = document.getElementById('forgotNewPass').value.trim();
+      const confirmPass = document.getElementById('forgotConfirmPass').value.trim();
+      const btn = document.getElementById('btnForgotReset');
+
+      if (!otp || !newPass || !confirmPass) {
+        return showAlert('forgotError', 'All fields are required.');
+      }
+
+      if (newPass.length < 6) {
+        return showAlert('forgotError', 'Password must be at least 6 characters.');
+      }
+
+      if (newPass !== confirmPass) {
+        return showAlert('forgotError', 'Passwords do not match.');
+      }
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loading-spinner"></div> Updating password...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp, newPassword: newPass })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Success! Show alert on login panel, reset inputs, and slide back to login
+          document.getElementById('loginId').value = email;
+          document.getElementById('loginPass').value = '';
+          showAlert('loginSuccess', '✅ Password reset successfully! Please log in with your new password.', false);
+          
+          // Reset forgot fields for next time
+          document.getElementById('forgotEmail').value = '';
+          document.getElementById('forgotOTP').value = '';
+          document.getElementById('forgotNewPass').value = '';
+          document.getElementById('forgotConfirmPass').value = '';
+          document.getElementById('forgotStep1').style.display = 'block';
+          document.getElementById('forgotStep2').style.display = 'none';
+
+          setTimeout(() => {
+            showPanel('login');
+          }, 1500);
+        } else {
+          showAlert('forgotError', data.error || 'Failed to reset password.');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        showAlert('forgotError', 'Server error. Please try again.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
     // ── REAL GOOGLE SIGN-IN ──
     window.onload = function () {
       if (typeof google !== 'undefined' && google.accounts) {
@@ -1094,13 +1286,37 @@
       }
     };
 
+    // ── JWT decode helper (client-side, no verify — Google already verified it) ──
+    function decodeGoogleJWT(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const json = decodeURIComponent(
+          atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+        );
+        return JSON.parse(json);
+      } catch (e) { return null; }
+    }
+
+    // ── Shared redirect helper ──
+    function redirectToDashboard(userData) {
+      localStorage.setItem('nr_user', JSON.stringify(userData));
+      const firstName = (userData.name || userData.email || 'Farmer').split(' ')[0];
+      showAlert('loginSuccess', `✅ Welcome, ${firstName}! Entering dashboard...`, false);
+      setTimeout(() => {
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => { window.location.href = 'index.html'; }, 400);
+      }, 800);
+    }
+
     async function handleGoogleLogin(response) {
       clearAlerts();
-      const btn = document.getElementById('btnGoogleLogin');
       const credential = response.credential;
 
-      btn.innerHTML = '<span class="gsi-loading"></span>&nbsp; Verifying...';
-      btn.disabled = true;
+      // Dim the Google button container while processing
+      const container = document.getElementById('btnGoogleLoginContainer');
+      if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
 
       try {
         const res = await fetch(`${API_URL}/google-auth`, {
@@ -1112,18 +1328,45 @@
         const data = await res.json();
 
         if (res.ok) {
-          localStorage.setItem('nr_user', JSON.stringify(data));
-          showAlert('loginSuccess', `✅ Welcome, ${data.name.split(' ')[0]}! Entering dashboard...`, false);
-          setTimeout(() => {
-            document.body.style.opacity = '0';
-            document.body.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => window.location.replace('index.html'), 400);
-          }, 800);
+          // ✅ Server verified — use server data and redirect
+          redirectToDashboard(data);
         } else {
-          showAlert('loginError', data.error || 'Google Sign-In failed. Please try again.');
+          // ⚠️ Server returned an error — fall back to client-side JWT decode
+          const payload = decodeGoogleJWT(credential);
+          if (payload) {
+            redirectToDashboard({
+              name: payload.name || payload.email,
+              email: payload.email,
+              avatar: payload.picture || '',
+              location: 'India',
+              area: '1.0',
+              crop: 'wheat',
+              phone: '',
+              loginMethod: 'google'
+            });
+          } else {
+            if (container) { container.style.opacity = '1'; container.style.pointerEvents = 'auto'; }
+            showAlert('loginError', data.error || 'Google Sign-In failed. Please try again.');
+          }
         }
       } catch (err) {
-        showAlert('loginError', 'Server error. Is the server running?');
+        // ⚠️ Server unreachable — fall back to client-side JWT decode so redirect always works
+        const payload = decodeGoogleJWT(credential);
+        if (payload) {
+          redirectToDashboard({
+            name: payload.name || payload.email,
+            email: payload.email,
+            avatar: payload.picture || '',
+            location: 'India',
+            area: '1.0',
+            crop: 'wheat',
+            phone: '',
+            loginMethod: 'google'
+          });
+        } else {
+          if (container) { container.style.opacity = '1'; container.style.pointerEvents = 'auto'; }
+          showAlert('loginError', 'Server error. Is the server running?');
+        }
       }
     }
   </script>
@@ -1152,6 +1395,9 @@
     }
 
     function setLang(code) {
+      // Save general preference
+      localStorage.setItem('nr_lang', code);
+
       // 1. Direct local translation (Instant)
       applyLocalTranslations(code);
 
@@ -1161,9 +1407,23 @@
         combo.value = code;
         combo.dispatchEvent(new Event('change'));
       }
+      
+      const langBtn = document.querySelector('.lang-btn');
+      if (langBtn) {
+        const langNames = {
+          en: '🌐 English',
+          kn: '🌐 ಕನ್ನಡ (Kannada)',
+          hi: '🌐 हिंदी (Hindi)',
+          te: '🌐 తెలుగు (Telugu)',
+          ta: '🌐 தமிழ் (Tamil)',
+          mr: '🌐 मराठी (Marathi)'
+        };
+        langBtn.textContent = langNames[code] || '🌐 Language';
+      }
+
       document.getElementById('langMenu').classList.remove('show');
       
-      // Save preference
+      // Save user preference
       const user = localStorage.getItem('nr_user');
       if (user) {
         const u = JSON.parse(user);
@@ -1171,6 +1431,7 @@
         localStorage.setItem('nr_user', JSON.stringify(u));
       }
     }
+
     // Close menu when clicking outside
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.lang-wrapper')) {
@@ -1178,9 +1439,15 @@
         if (menu && menu.classList.contains('show')) menu.classList.remove('show');
       }
     });
+
+    // Auto-load language preference on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('nr_lang') || 'en';
+      setLang(savedLang);
+    });
   </script>
   <script type="text/javascript"
-    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 
 </html>

@@ -17,6 +17,12 @@
   <script>
     if (!localStorage.getItem('nr_user')) {
       window.location.replace('login.html');
+    } else {
+      // Auto-redirect mobile users to the dedicated mobile app version
+      const _isNative = (() => { try { return window.Capacitor && window.Capacitor.isNativePlatform(); } catch(e) { return false; } })();
+      if (window.innerWidth <= 768 || _isNative) {
+        window.location.replace('mobile_app.html');
+      }
     }
   </script>
   <script>
@@ -437,13 +443,12 @@
         </div>
         <button class="topbar-btn" id="whatsappBtn" onclick="sendWhatsApp()" title="Send report to WhatsApp">📱</button>
         <button class="topbar-btn" id="exportBtn" onclick="exportReport()" title="Export Report">📄</button>
-        <button class="topbar-btn" id="themeToggleBtn" onclick="toggleTheme()"
-          title="Toggle Dark/Light Mode">🌙</button>
+        <button class="topbar-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
         <div class="time-display" id="timeDisplay"></div>
       </div>
     </header>
 
-    <div class="pages-container">
+    <div class="pages-container container">
 
       <!-- ===== DASHBOARD ===== -->
       <section class="page active" id="page-dashboard">
@@ -616,6 +621,31 @@
             <div class="score-mini-item" onclick="showPage('sustainability')" style="cursor:pointer">
               <div class="score-mini-circle yellow" style="--pct:82%"><span>82</span></div>
               <div>Yield Index</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic News & Market Insights -->
+        <div class="panel glass-panel" style="margin-top:20px; overflow:hidden">
+          <div class="panel-header">
+            <h2 class="panel-title">📰 Agri-News & Market Trends</h2>
+            <button class="refresh-btn" onclick="showToast('🔄', 'Fetching latest agri-news...')">↻</button>
+          </div>
+          <div class="news-slider" style="display:flex; gap:16px; overflow-x:auto; padding-bottom:10px; scroll-snap-type: x mandatory;">
+            <div class="news-card" style="min-width:280px; flex:0 0 280px; background:rgba(255,255,255,0.03); padding:18px; border-radius:12px; border:1px solid var(--border); scroll-snap-align: start; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="font-size:10px; color:var(--green-primary); margin-bottom:8px; font-weight:700; text-transform:uppercase">Market Watch</div>
+              <div style="font-size:14px; font-weight:600; margin-bottom:8px; line-height:1.4">Tomato prices expected to rise 20% next month in Karnataka mandis.</div>
+              <div style="font-size:12px; color:var(--text-muted)">Historical trends suggest peak demand during June-July.</div>
+            </div>
+            <div class="news-card" style="min-width:280px; flex:0 0 280px; background:rgba(255,255,255,0.03); padding:18px; border-radius:12px; border:1px solid var(--border); scroll-snap-align: start; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="font-size:10px; color:var(--blue-accent); margin-bottom:8px; font-weight:700; text-transform:uppercase">Weather Insight</div>
+              <div style="font-size:14px; font-weight:600; margin-bottom:8px; line-height:1.4">IMD predicts normal monsoon for South Interior Karnataka.</div>
+              <div style="font-size:12px; color:var(--text-muted)">Prepare your seedbeds and drainage systems by mid-May.</div>
+            </div>
+            <div class="news-card" style="min-width:280px; flex:0 0 280px; background:rgba(255,255,255,0.03); padding:18px; border-radius:12px; border:1px solid var(--border); scroll-snap-align: start; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="font-size:10px; color:var(--purple-accent); margin-bottom:8px; font-weight:700; text-transform:uppercase">Govt Policy</div>
+              <div style="font-size:14px; font-weight:600; margin-bottom:8px; line-height:1.4">New 80% subsidy for Drip Irrigation sets under PMKSY.</div>
+              <div style="font-size:12px; color:var(--text-muted)">Contact your local Raitha Samparka Kendra for application details.</div>
             </div>
           </div>
         </div>
@@ -1061,18 +1091,10 @@
           </div>
           <div class="location-input-row">
             <input type="text" class="form-input" id="cityInput"
-              placeholder="Enter city (Nashik, Pune, Nagpur, Mumbai...)" value="Nashik"
+              placeholder="📡 Auto-detecting your location... or type a city"
               onkeypress="if(event.key==='Enter')fetchWeather()" />
             <button class="btn btn-primary" onclick="fetchWeather()">🔍 Fetch Weather</button>
-            <button class="btn btn-secondary" onclick="useGPS()">📡 Use GPS</button>
-          </div>
-          <div class="city-quick-btns">
-            <button class="city-btn" onclick="setCity('Nashik')">Nashik</button>
-            <button class="city-btn" onclick="setCity('Pune')">Pune</button>
-            <button class="city-btn" onclick="setCity('Nagpur')">Nagpur</button>
-            <button class="city-btn" onclick="setCity('Mumbai')">Mumbai</button>
-            <button class="city-btn" onclick="setCity('Aurangabad')">Aurangabad</button>
-            <button class="city-btn" onclick="setCity('Solapur')">Solapur</button>
+            <button class="btn btn-secondary" onclick="useGPS()" id="autoDetectBtn">📡 Auto-Detect Weather</button>
           </div>
           <div class="api-note"
             style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:#4ade80;">
@@ -1085,8 +1107,8 @@
             <div class="current-weather-icon" id="cwIcon">⛅</div>
             <div>
               <div class="current-temp" id="cwTemp">28°C</div>
-              <div class="current-desc" id="cwDesc">Partly Cloudy</div>
-              <div class="current-city" id="cwCity">📍 Nashik, Maharashtra</div>
+              <div class="current-desc" id="cwDesc">Detecting location...</div>
+              <div class="current-city" id="cwCity">📡 Auto-detecting...</div>
             </div>
           </div>
           <div class="current-weather-stats">
@@ -1224,7 +1246,23 @@
               </select>
             </div>
           </div>
-          <div class="products-grid" id="allProductsGrid">
+          <div class="panel marketplace-controls" style="margin-bottom:20px">
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+            <div class="search-wrapper" style="flex:1; min-width:250px; position:relative">
+              <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted)">🔍</span>
+              <input type="text" id="marketSearch" class="form-input" placeholder="Search seeds, fertilizers, tools..." style="padding-left:36px" oninput="filterProducts()">
+            </div>
+            <select class="form-select" id="marketCategory" style="width:auto; min-width:150px" onchange="filterProducts()">
+              <option value="all">All Categories</option>
+              <option value="Seeds">Seeds</option>
+              <option value="Fertilizer">Fertilizer</option>
+              <option value="Tools">Tools</option>
+              <option value="Pesticide">Pesticide</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="products-grid" id="productsGrid"></div>
             <!-- All products will appear here -->
           </div>
         </div>
@@ -1787,7 +1825,11 @@
         const loc = document.getElementById('farmerLoc');
         if (el && u.name) el.textContent = u.name;
         if (loc && u.location) loc.textContent = '📍 ' + u.location;
-        if (u.lang) setTimeout(() => setLang(u.lang), 2000); // Wait for Google Translate to load
+        
+        // Load language preference instantly from localStorage
+        const savedLang = localStorage.getItem('nr_lang') || u.lang || 'en';
+        applyLocalTranslations(savedLang);
+        setTimeout(() => setLang(savedLang), 1000);
       } catch (e) { }
     })();
   </script>
@@ -1812,6 +1854,9 @@
     }
 
     function setLang(code) {
+      // Save general preference
+      localStorage.setItem('nr_lang', code);
+
       // 1. Direct local translation (Instant)
       applyLocalTranslations(code);
 
@@ -1821,9 +1866,23 @@
         combo.value = code;
         combo.dispatchEvent(new Event('change'));
       }
+      
+      const langBtn = document.querySelector('.lang-btn');
+      if (langBtn) {
+        const langNames = {
+          en: '🌐 English',
+          kn: '🌐 ಕನ್ನಡ (Kannada)',
+          hi: '🌐 हिंदी (Hindi)',
+          te: '🌐 తెలుగు',
+          ta: '🌐 தமிழ் (Tamil)',
+          mr: '🌐 मराठी (Marathi)'
+        };
+        langBtn.textContent = langNames[code] || '🌐 Language';
+      }
+
       document.getElementById('langMenu')?.classList.remove('show');
 
-      // Save preference
+      // Save user preference
       const user = localStorage.getItem('nr_user');
       if (user) {
         try {
@@ -1842,7 +1901,7 @@
     });
   </script>
   <script type="text/javascript"
-    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <!-- CAMERA MODAL -->
   <div class="modal-overlay" id="cameraModal">
     <div class="modal" style="max-width:500px">
@@ -1892,6 +1951,8 @@
     </div>
   </div>
 
+
+
   <style>
     @keyframes scanMove {
       0% {
@@ -1914,17 +1975,17 @@
       <i>🏠</i>
       <span>Home</span>
     </a>
-    <a href="#" class="bottom-nav-item" onclick="showPage('advisors')">
-      <i>🧬</i>
-      <span>AI</span>
+    <a href="#" class="bottom-nav-item" onclick="openAIChat()">
+      <i>🤖</i>
+      <span>AI Chat</span>
     </a>
-    <a href="#" class="bottom-nav-item" onclick="showPage('marketplace')">
+    <a href="#" class="bottom-nav-item" onclick="showPage('products')">
       <i>🛒</i>
       <span>Shop</span>
     </a>
-    <a href="#" class="bottom-nav-item" onclick="showPage('profile')">
-      <i>👤</i>
-      <span>Profile</span>
+    <a href="#" class="bottom-nav-item" onclick="showPage('settings')">
+      <i>⚙️</i>
+      <span>Settings</span>
     </a>
   </nav>
 

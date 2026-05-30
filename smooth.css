@@ -63,7 +63,7 @@
 .btn-secondary:hover  { transform: translateY(-2px); }
 .btn-ghost:hover      { transform: translateY(-1px); }
 .quick-btn:hover      { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(74,222,128,0.12); }
-.refresh-btn:hover    { transform: rotate(180deg) scale(1.06) !important; }
+.refresh-btn:hover    { transform: scale(1.06) !important; }
 .hero-ai-btn:hover    { transform: translateY(-2px) scale(1.03); }
 .city-btn:hover       { transform: translateY(-2px) scale(1.04); }
 .ai-chip:hover        { transform: translateY(-2px) scale(1.03); }
@@ -159,7 +159,7 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 .ai-send-btn { transition: all 0.2s cubic-bezier(0.22,1,0.36,1); }
-.ai-send-btn:hover  { transform: scale(1.12) rotate(-5deg); box-shadow: 0 6px 20px rgba(74,222,128,0.5); }
+.ai-send-btn:hover  { transform: scale(1.12); box-shadow: 0 6px 20px rgba(74,222,128,0.5); }
 .ai-send-btn:active { transform: scale(0.92); }
 
 /* ── TOAST ── */
@@ -172,15 +172,15 @@
 
 /* ── FAB BUTTONS ── */
 .fab-ai, .fab-voice { transition: transform 0.24s cubic-bezier(0.22,1,0.36,1), box-shadow 0.24s ease; }
-.fab-ai:hover    { transform: scale(1.15) translateY(-3px) rotate(-8deg); }
-.fab-voice:hover { transform: scale(1.15) translateY(-3px) rotate(8deg); }
+.fab-ai:hover    { transform: scale(1.15) translateY(-3px); }
+.fab-voice:hover { transform: scale(1.15) translateY(-3px); }
 .fab-ai:active, .fab-voice:active { transform: scale(0.92); }
 
 /* ── TOPBAR ELEMENTS ── */
 .weather-pill:hover { transform: scale(1.06); }
 .alert-pill:hover   { transform: scale(1.06); }
 .topbar-btn { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
-.topbar-btn:hover { transform: scale(1.13) rotate(-6deg); }
+.topbar-btn:hover { transform: scale(1.13); }
 
 /* ── WEATHER ICON FLOAT ── */
 @keyframes weatherFloat {
