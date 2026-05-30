@@ -4,7 +4,7 @@
 // Auto-detect: use real IP on Android (Capacitor), localhost on web browser
 const _isNative = (() => { try { return window.Capacitor && window.Capacitor.isNativePlatform(); } catch(e) { return false; } })();
 const CONFIG = {
-  API_BASE_URL: _isNative ? 'https://namma-rytha-backend.onrender.com' : ((typeof window !== 'undefined' && window.location.hostname === 'localhost') ? 'http://localhost:3000' : 'https://namma-rytha-backend.onrender.com'),
+  API_BASE_URL: 'https://namma-rytha-backend.onrender.com',
   // Free key from https://aistudio.google.com/app/apikey
   GEMINI_API_KEY: 'AIzaSyDemo_replace_with_your_key',
   GEMINI_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',

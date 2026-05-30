@@ -976,7 +976,7 @@
   <script>
     // ── CONFIG ──
     const _isNative = (() => { try { return window.Capacitor && window.Capacitor.isNativePlatform(); } catch(e) { return false; } })();
-    const API_BASE_URL = _isNative ? 'https://namma-rytha-backend.onrender.com' : (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://namma-rytha-backend.onrender.com');
+    const API_BASE_URL = 'https://namma-rytha-backend.onrender.com';
     const API_URL = `${API_BASE_URL}/api`;
 
     // ── CHECK EXISTING AUTH ──
