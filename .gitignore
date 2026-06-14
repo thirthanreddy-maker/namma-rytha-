@@ -8,3 +8,6 @@ android/
 www/
 *.iml
 refactor.js
+
+# Local Netlify folder
+.netlify

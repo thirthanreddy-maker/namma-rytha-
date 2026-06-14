@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRS — Namma Rytha | Software Requirements Specification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       GLOBAL RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #1a6b3a;
+      --primary-dark: #104d2a;
+      --primary-light:#e8f5ed;
+      --accent:       #2e9e5b;
+      --accent2:      #f0a500;
+      --text:         #1a1e2e;
+      --text-muted:   #5a6377;
+      --border:       #d4dce5;
+      --bg:           #f7f9fc;
+      --white:        #ffffff;
+      --danger:       #c0392b;
+      --info:         #1e5fa3;
+    }
+
+    html { font-size: 10pt; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+    }
+
+    /* ============================================================
+       PRINT STYLES
+    ============================================================ */
+    @media print {
+      body { background: #fff; font-size: 10pt; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      .section-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+      a { color: inherit; text-decoration: none; }
+      .cover-page { page-break-after: always; }
+    }
+
+    /* ============================================================
+       PRINT BUTTON
+    ============================================================ */
+    .no-print {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .print-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26,107,58,.35);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s;
+    }
+    .print-btn:hover { background: var(--primary-dark); }
+    .save-note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 11px;
+      max-width: 240px;
+      text-align: center;
+    }
+
+    /* ============================================================
+       LAYOUT WRAPPER
+    ============================================================ */
+    .doc-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    /* ============================================================
+       COVER PAGE
+    ============================================================ */
+    .cover-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, #0d2b18 0%, #1a5c34 40%, #0d2b18 100%);
+      color: #fff;
+      border-radius: 0 0 24px 24px;
+      margin-bottom: 48px;
+    }
+    .cover-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 80% 20%, rgba(46,158,91,.4) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 10% 80%, rgba(240,165,0,.15) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.25);
+      color: #a7f3d0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 50px;
+      margin-bottom: 28px;
+    }
+    .cover-logo-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.1);
+      border: 2px solid rgba(255,255,255,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      margin: 0 auto 28px;
+      box-shadow: 0 0 40px rgba(46,158,91,.5);
+    }
+    .cover-title {
+      font-family: 'Source Serif 4', serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 8px;
+      letter-spacing: -.5px;
+    }
+    .cover-subtitle {
+      font-size: 16px;
+      color: #a7f3d0;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .cover-kannada {
+      font-size: 14px;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 40px;
+    }
+    .cover-divider {
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #4ade80, transparent);
+      margin: 0 auto 36px;
+      border-radius: 2px;
+    }
+    .cover-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+    .cover-meta-item {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .cover-meta-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #6ee7b7;
+      margin-bottom: 4px;
+    }
+    .cover-meta-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .cover-team {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .cover-tag {
+      background: rgba(74,222,128,.12);
+      border: 1px solid rgba(74,222,128,.25);
+      color: #a7f3d0;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 50px;
+    }
+
+    /* ============================================================
+       TABLE OF CONTENTS
+    ============================================================ */
+    .toc-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .toc-title {
+      font-family: 'Source Serif 4', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toc-list { list-style: none; }
+    .toc-item { padding: 0; }
+    .toc-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .15s;
+      border-bottom: 1px dashed var(--border);
+    }
+    .toc-link:hover { background: var(--primary-light); color: var(--primary); }
+    .toc-link .toc-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 4px;
+      min-width: 32px;
+      text-align: center;
+      margin-right: 12px;
+    }
+    .toc-link .toc-dots { flex: 1; border-bottom: 1px dotted #ccc; margin: 0 10px; }
+    .toc-link .toc-page { font-size: 11px; color: var(--text-muted); }
+    .toc-sub .toc-link { padding-left: 32px; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+    .toc-sub .toc-link .toc-num { font-size: 10px; background: #f0f4f8; color: var(--text-muted); }
+
+    /* ============================================================
+       SECTION CARDS
+    ============================================================ */
+    .section-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .section-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px; height: 34px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .section-heading {
+      font-family: 'Source Serif 4', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+    .subsection-heading {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin: 22px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .subsection-heading::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    p { margin-bottom: 12px; font-size: 13px; line-height: 1.75; color: var(--text); }
+    p:last-child { margin-bottom: 0; }
+
+    /* ============================================================
+       TABLES
+    ============================================================ */
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 14px 0;
+    }
+    .doc-table th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .doc-table th:first-child { border-radius: 8px 0 0 0; }
+    .doc-table th:last-child  { border-radius: 0 8px 0 0; }
+    .doc-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #eef1f6;
+      vertical-align: top;
+      color: var(--text);
+    }
+    .doc-table tr:hover td { background: var(--primary-light); }
+    .doc-table tr:last-child td { border-bottom: none; }
+    .doc-table .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+    .badge-high    { background: #fee2e2; color: #991b1b; }
+    .badge-medium  { background: #fef3c7; color: #92400e; }
+    .badge-low     { background: #dcfce7; color: #14532d; }
+    .badge-green   { background: #dcfce7; color: #14532d; }
+    .badge-blue    { background: #dbeafe; color: #1e3a8a; }
+    .badge-purple  { background: #ede9fe; color: #4c1d95; }
+    .badge-orange  { background: #ffedd5; color: #9a3412; }
+
+    /* ============================================================
+       INFO CARDS / CALLOUTS
+    ============================================================ */
+    .callout {
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      border-left: 4px solid;
+      font-size: 12.5px;
+    }
+    .callout-info    { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+    .callout-warn    { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+    .callout-success { background: #f0fdf4; border-color: #22c55e; color: #14532d; }
+    .callout-danger  { background: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
+    .callout strong  { display: block; font-weight: 700; margin-bottom: 4px; }
+
+    /* ============================================================
+       FEATURE PILLS
+    ============================================================ */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .feature-card {
+      background: var(--primary-light);
+      border: 1px solid rgba(26,107,58,.18);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .feature-icon { font-size: 26px; margin-bottom: 8px; }
+    .feature-name { font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+    /* ============================================================
+       REQUIREMENT ITEMS
+    ============================================================ */
+    .req-list { list-style: none; margin: 10px 0; }
+    .req-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      font-size: 12.5px;
+    }
+    .req-item:hover { background: var(--primary-light); border-color: rgba(26,107,58,.25); }
+    .req-id {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .req-text { flex: 1; line-height: 1.5; color: var(--text); }
+
+    /* ============================================================
+       NUMBERED / BULLET LISTS
+    ============================================================ */
+    .doc-ul { padding-left: 20px; margin: 10px 0; }
+    .doc-ul li { margin-bottom: 6px; font-size: 12.5px; line-height: 1.6; }
+    .doc-ol { padding-left: 20px; margin: 10px 0; }
+    .doc-ol li { margin-bottom: 6px; font-size: 12.5px; line-height: 1.6; }
+
+    /* ============================================================
+       ARCHITECTURE DIAGRAM (text-based)
+    ============================================================ */
+    .arch-box {
+      background: #0d1f14;
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #a7f3d0;
+      line-height: 1.6;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+    .arch-box .layer { color: #fbbf24; font-weight: 700; }
+    .arch-box .arrow { color: #6ee7b7; }
+    .arch-box .comp  { color: #93c5fd; }
+    .arch-box .db    { color: #f9a8d4; }
+
+    /* ============================================================
+       TECH STACK PILLS
+    ============================================================ */
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .tech-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .tech-pill .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ============================================================
+       USECASE TABLE
+    ============================================================ */
+    .uc-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 14px 0;
+      overflow: hidden;
+    }
+    .uc-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .uc-body { padding: 14px 18px; }
+    .uc-row { display: grid; grid-template-columns: 140px 1fr; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 12px; }
+    .uc-row:last-child { border-bottom: none; }
+    .uc-label { font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ============================================================
+       NFR TABLE
+    ============================================================ */
+    .nfr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .nfr-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .nfr-card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .nfr-card p { font-size: 12px; margin-bottom: 6px; }
+
+    /* ============================================================
+       RISK TABLE
+    ============================================================ */
+    .risk-high   { color: #991b1b; background: #fee2e2; }
+    .risk-medium { color: #92400e; background: #fef3c7; }
+    .risk-low    { color: #14532d; background: #dcfce7; }
+
+    /* ============================================================
+       FOOTER / WATERMARK
+    ============================================================ */
+    .doc-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ============================================================
+       REVISION HISTORY
+    ============================================================ */
+    .rev-table th { background: #334155; }
+
+  </style>
+</head>
+<body>
+
+<!-- PRINT BUTTON (hidden on print) -->
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <div class="save-note">Use <strong>Ctrl+P → Save as PDF</strong> in your browser to export.</div>
+</div>
+
+<div class="doc-wrapper">
+
+  <!-- ============================================================
+       COVER PAGE
+  ============================================================ -->
+  <div class="cover-page">
+    <div class="cover-badge">📄 Software Requirements Specification</div>
+    <div class="cover-logo-ring">🌾</div>
+    <div class="cover-title">Namma Rytha</div>
+    <div class="cover-subtitle">AI-Powered Smart Farming Platform</div>
+    <div class="cover-kannada">ನಮ್ಮ ರೈತ — Empowering Every Indian Farmer</div>
+    <div class="cover-divider"></div>
+
+    <div class="cover-meta-grid">
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Document Type</div>
+        <div class="cover-meta-value">SRS v1.0</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Date</div>
+        <div class="cover-meta-value">June 2026</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Status</div>
+        <div class="cover-meta-value">Final Draft</div>
+      </div>
+    </div>
+
+    <div class="cover-team">
+      <span class="cover-tag">🎓 Academic Project</span>
+      <span class="cover-tag">🌾 AgriTech Domain</span>
+      <span class="cover-tag">🤖 AI / ML Integrated</span>
+      <span class="cover-tag">📱 PWA + Android</span>
+      <span class="cover-tag">🇮🇳 Made for India</span>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       TABLE OF CONTENTS
+  ============================================================ -->
+  <div class="toc-section">
+    <div class="toc-title">📋 Table of Contents</div>
+    <ul class="toc-list">
+      <li class="toc-item">
+        <a href="#s1" class="toc-link">
+          <span class="toc-num">1</span> Introduction
+          <span class="toc-dots"></span>
+          <span class="toc-page">§1</span>
+        </a>
+        <ul class="toc-list toc-sub">
+          <li><a href="#s1-1" class="toc-link"><span class="toc-num">1.1</span> Purpose <span class="toc-dots"></span></a></li>
+          <li><a href="#s1-2" class="toc-link"><span class="toc-num">1.2</span> Scope <span class="toc-dots"></span></a></li>
+          <li><a href="#s1-3" class="toc-link"><span class="toc-num">1.3</span> Definitions &amp; Abbreviations <span class="toc-dots"></span></a></li>
+          <li><a href="#s1-4" class="toc-link"><span class="toc-num">1.4</span> Overview of Document <span class="toc-dots"></span></a></li>
+        </ul>
+      </li>
+      <li class="toc-item">
+        <a href="#s2" class="toc-link">
+          <span class="toc-num">2</span> Overall Description
+          <span class="toc-dots"></span><span class="toc-page">§2</span>
+        </a>
+        <ul class="toc-list toc-sub">
+          <li><a href="#s2-1" class="toc-link"><span class="toc-num">2.1</span> Product Perspective <span class="toc-dots"></span></a></li>
+          <li><a href="#s2-2" class="toc-link"><span class="toc-num">2.2</span> Product Functions <span class="toc-dots"></span></a></li>
+          <li><a href="#s2-3" class="toc-link"><span class="toc-num">2.3</span> User Classes &amp; Characteristics <span class="toc-dots"></span></a></li>
+          <li><a href="#s2-4" class="toc-link"><span class="toc-num">2.4</span> Operating Environment <span class="toc-dots"></span></a></li>
+          <li><a href="#s2-5" class="toc-link"><span class="toc-num">2.5</span> Assumptions &amp; Dependencies <span class="toc-dots"></span></a></li>
+        </ul>
+      </li>
+      <li class="toc-item">
+        <a href="#s3" class="toc-link">
+          <span class="toc-num">3</span> System Architecture
+          <span class="toc-dots"></span><span class="toc-page">§3</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s4" class="toc-link">
+          <span class="toc-num">4</span> Functional Requirements
+          <span class="toc-dots"></span><span class="toc-page">§4</span>
+        </a>
+        <ul class="toc-list toc-sub">
+          <li><a href="#s4-1" class="toc-link"><span class="toc-num">4.1</span> Authentication Module <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-2" class="toc-link"><span class="toc-num">4.2</span> Dashboard Module <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-3" class="toc-link"><span class="toc-num">4.3</span> Irrigation Advisor <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-4" class="toc-link"><span class="toc-num">4.4</span> Fertilizer Recommendation Engine <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-5" class="toc-link"><span class="toc-num">4.5</span> Crop Advisor <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-6" class="toc-link"><span class="toc-num">4.6</span> Disease Detector <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-7" class="toc-link"><span class="toc-num">4.7</span> Weather Intelligence <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-8" class="toc-link"><span class="toc-num">4.8</span> Market Price Module <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-9" class="toc-link"><span class="toc-num">4.9</span> Sustainability Tracker <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-10" class="toc-link"><span class="toc-num">4.10</span> Marketplace <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-11" class="toc-link"><span class="toc-num">4.11</span> Admin Panel <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-12" class="toc-link"><span class="toc-num">4.12</span> AI Chat Advisor <span class="toc-dots"></span></a></li>
+          <li><a href="#s4-13" class="toc-link"><span class="toc-num">4.13</span> Multilingual Support <span class="toc-dots"></span></a></li>
+        </ul>
+      </li>
+      <li class="toc-item">
+        <a href="#s5" class="toc-link">
+          <span class="toc-num">5</span> Non-Functional Requirements
+          <span class="toc-dots"></span><span class="toc-page">§5</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s6" class="toc-link">
+          <span class="toc-num">6</span> Use Case Descriptions
+          <span class="toc-dots"></span><span class="toc-page">§6</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s7" class="toc-link">
+          <span class="toc-num">7</span> Database Design
+          <span class="toc-dots"></span><span class="toc-page">§7</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s8" class="toc-link">
+          <span class="toc-num">8</span> API Specification
+          <span class="toc-dots"></span><span class="toc-page">§8</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s9" class="toc-link">
+          <span class="toc-num">9</span> Risk Analysis
+          <span class="toc-dots"></span><span class="toc-page">§9</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#s10" class="toc-link">
+          <span class="toc-num">10</span> Appendices
+          <span class="toc-dots"></span><span class="toc-page">§10</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 1 — INTRODUCTION
+  ============================================================ -->
+  <div class="section-card" id="s1">
+    <div class="section-heading"><span class="section-num">1</span>Introduction</div>
+
+    <div id="s1-1">
+      <div class="subsection-heading">1.1 Purpose</div>
+      <p>This Software Requirements Specification (SRS) document describes the complete functional and non-functional requirements for <strong>Namma Rytha</strong> (ನಮ್ಮ ರೈತ), an AI-powered smart farming platform designed for Indian farmers. The document is intended for use by developers, testers, academic evaluators, and stakeholders to understand the system's objectives, features, constraints, and design.</p>
+      <p>This SRS conforms to the IEEE 830-1998 standard for software requirements specifications and serves as the authoritative reference throughout the software development lifecycle (SDLC).</p>
+    </div>
+
+    <div id="s1-2">
+      <div class="subsection-heading">1.2 Scope</div>
+      <p><strong>Namma Rytha</strong> is a full-stack web and mobile application that empowers Indian farmers with AI-driven agricultural intelligence. The platform integrates real-time weather data, precision irrigation planning, fertilizer prescription engines, crop advisory systems, plant disease detection, live market prices, a sustainability tracker, and an online marketplace for agricultural tools.</p>
+      <p>The system supports <strong>two primary user roles</strong>: Farmers (end users) and Administrators (platform managers). It is accessible via any modern web browser and as a Progressive Web App (PWA) / native Android application through Capacitor.</p>
+      <div class="callout callout-success">
+        <strong>✅ What is in scope:</strong>
+        Web application, REST API backend, SQLite database, Android APK build, AI-powered recommendations via Google Gemini, and real-time weather integration.
+      </div>
+      <div class="callout callout-warn">
+        <strong>⚠️ What is out of scope:</strong>
+        IoT hardware integration, real-time soil sensor connectivity, iOS native build, payment gateway integration, SMS/email OTP delivery (currently demo mode).
+      </div>
+    </div>
+
+    <div id="s1-3">
+      <div class="subsection-heading">1.3 Definitions, Acronyms &amp; Abbreviations</div>
+      <table class="doc-table">
+        <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SRS</strong></td><td>Software Requirements Specification</td></tr>
+          <tr><td><strong>AI</strong></td><td>Artificial Intelligence</td></tr>
+          <tr><td><strong>PWA</strong></td><td>Progressive Web Application — installable web app with offline support</td></tr>
+          <tr><td><strong>Gemini API</strong></td><td>Google's generative AI API used for natural-language farming advice</td></tr>
+          <tr><td><strong>Open-Meteo</strong></td><td>Open-source weather API providing real-time forecasts</td></tr>
+          <tr><td><strong>SQLite</strong></td><td>Lightweight embedded relational database used as the backend data store</td></tr>
+          <tr><td><strong>REST API</strong></td><td>Representational State Transfer — stateless HTTP-based API pattern</td></tr>
+          <tr><td><strong>NPK</strong></td><td>Nitrogen, Phosphorus, Potassium — primary soil macronutrients</td></tr>
+          <tr><td><strong>OTP</strong></td><td>One-Time Password for password reset verification</td></tr>
+          <tr><td><strong>Capacitor</strong></td><td>Cross-platform runtime for converting web apps into native Android apps</td></tr>
+          <tr><td><strong>Nominatim</strong></td><td>Open-source geocoding service (OpenStreetMap) used for city-to-coordinate lookup</td></tr>
+          <tr><td><strong>SDLC</strong></td><td>Software Development Life Cycle</td></tr>
+          <tr><td><strong>FR</strong></td><td>Functional Requirement</td></tr>
+          <tr><td><strong>NFR</strong></td><td>Non-Functional Requirement</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="s1-4">
+      <div class="subsection-heading">1.4 Overview of Document</div>
+      <p>This document is organised into ten sections:</p>
+      <ul class="doc-ul">
+        <li><strong>Section 1</strong> — Introduction, purpose, scope, and definitions.</li>
+        <li><strong>Section 2</strong> — Overall system description, user classes, and operating environment.</li>
+        <li><strong>Section 3</strong> — System architecture with component overview.</li>
+        <li><strong>Section 4</strong> — Detailed functional requirements for all 13 modules.</li>
+        <li><strong>Section 5</strong> — Non-functional requirements (performance, security, usability, etc.).</li>
+        <li><strong>Section 6</strong> — Use case descriptions for key workflows.</li>
+        <li><strong>Section 7</strong> — Database schema and entity relationships.</li>
+        <li><strong>Section 8</strong> — REST API endpoint specification.</li>
+        <li><strong>Section 9</strong> — Risk analysis and mitigation strategies.</li>
+        <li><strong>Section 10</strong> — Appendices including revision history and references.</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 2 — OVERALL DESCRIPTION
+  ============================================================ -->
+  <div class="section-card page-break" id="s2">
+    <div class="section-heading"><span class="section-num">2</span>Overall Description</div>
+
+    <div id="s2-1">
+      <div class="subsection-heading">2.1 Product Perspective</div>
+      <p>Namma Rytha is a <strong>standalone full-stack application</strong> consisting of three tiers:</p>
+      <ul class="doc-ul">
+        <li><strong>Presentation Layer:</strong> HTML5/CSS3/JavaScript SPA served as static files, also packaged as a PWA and Android APK via Capacitor.</li>
+        <li><strong>Business Logic Layer:</strong> Node.js + Express.js RESTful backend deployed on Render.com (cloud) or run locally on port 3000.</li>
+        <li><strong>Data Layer:</strong> SQLite database with tables for users, admins, products, orders, farm data, feedback, and activity logs.</li>
+      </ul>
+      <p>External integrations include:</p>
+      <ul class="doc-ul">
+        <li><strong>Google Gemini 2.0 Flash</strong> — generative AI for farming advice and chat.</li>
+        <li><strong>Open-Meteo API</strong> — free, real-time weather and 7-day forecast.</li>
+        <li><strong>Nominatim (OpenStreetMap)</strong> — geocoding for location-based weather.</li>
+        <li><strong>Google OAuth 2.0</strong> — secure Google Sign-In for farmers and admins.</li>
+        <li><strong>Leaflet.js + Globe.gl</strong> — interactive farm maps.</li>
+      </ul>
+    </div>
+
+    <div id="s2-2">
+      <div class="subsection-heading">2.2 Product Functions (Feature Overview)</div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">💧</div>
+          <div class="feature-name">Irrigation Advisor</div>
+          <div class="feature-desc">AI-based irrigation decisions based on soil moisture, crop type, weather &amp; last irrigation date.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌿</div>
+          <div class="feature-name">Fertilizer Engine</div>
+          <div class="feature-desc">Precision NPK prescription based on soil pH, nutrient levels, and crop requirements.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌾</div>
+          <div class="feature-name">Crop Advisor</div>
+          <div class="feature-desc">AI-ranked crop recommendations based on soil type, season, temperature, rainfall, and pH.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔬</div>
+          <div class="feature-name">Disease Detector</div>
+          <div class="feature-desc">Symptom-based crop disease diagnosis with treatment plans and prevention strategies.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">☁️</div>
+          <div class="feature-name">Weather Intelligence</div>
+          <div class="feature-desc">Real-time weather with 7-day forecast, UV index, humidity, wind speed, and rain probability.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📈</div>
+          <div class="feature-name">Market Prices</div>
+          <div class="feature-desc">Live mandi prices for major crops across Indian states with price trend analysis.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-name">Sustainability Tracker</div>
+          <div class="feature-desc">Eco-score tracking for water saved, chemical reduction, yield index, and achievements.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <div class="feature-name">Marketplace</div>
+          <div class="feature-desc">Shop for agricultural tools, irrigation kits, sprayers, and smart accessories.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-name">AI Chat Advisor</div>
+          <div class="feature-desc">Conversational AI powered by Google Gemini for personalised farming queries in real-time.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-name">Multilingual</div>
+          <div class="feature-desc">Supports English, Kannada, Hindi, Telugu, Tamil, and Marathi via local translations.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <div class="feature-name">Admin Panel</div>
+          <div class="feature-desc">Manage farmers, products, orders, and activities with role-based access control.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <div class="feature-name">PWA + Android</div>
+          <div class="feature-desc">Installable as a Progressive Web App and native Android APK via Capacitor.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s2-3">
+      <div class="subsection-heading">2.3 User Classes &amp; Characteristics</div>
+      <table class="doc-table">
+        <thead><tr><th>User Class</th><th>Description</th><th>Technical Proficiency</th><th>Primary Goal</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>🧑‍🌾 Farmer (End User)</strong></td>
+            <td>Indian farmer with small to medium land holding (0.5–10 acres). May use mobile device primarily.</td>
+            <td>Low to Medium</td>
+            <td>Get actionable AI farming advice, check weather, buy tools</td>
+          </tr>
+          <tr>
+            <td><strong>🔐 Administrator</strong></td>
+            <td>Platform manager responsible for content, products, and farmer oversight.</td>
+            <td>Medium to High</td>
+            <td>Manage farmers, products, monitor activity, handle orders</td>
+          </tr>
+          <tr>
+            <td><strong>👀 Guest (Unauthenticated)</strong></td>
+            <td>Visitor who has not logged in — redirected to login page automatically.</td>
+            <td>Any</td>
+            <td>Sign up or login to access features</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="s2-4">
+      <div class="subsection-heading">2.4 Operating Environment</div>
+      <table class="doc-table">
+        <thead><tr><th>Component</th><th>Specification</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Backend Runtime</strong></td><td>Node.js v18+, Express.js v5.x</td></tr>
+          <tr><td><strong>Database</strong></td><td>SQLite3 v6.x (embedded, no separate server required)</td></tr>
+          <tr><td><strong>Frontend</strong></td><td>Vanilla HTML5, CSS3, JavaScript (ES2022+)</td></tr>
+          <tr><td><strong>Android Build</strong></td><td>Capacitor v8.x, Android Studio, API level 22+</td></tr>
+          <tr><td><strong>Cloud Deploy</strong></td><td>Render.com (free tier), auto-sleep after 15 min inactivity</td></tr>
+          <tr><td><strong>Supported Browsers</strong></td><td>Chrome 90+, Firefox 88+, Safari 14+, Edge 90+</td></tr>
+          <tr><td><strong>Supported OS</strong></td><td>Windows 10/11, macOS 11+, Ubuntu 20+, Android 5.1+</td></tr>
+          <tr><td><strong>Network</strong></td><td>Requires internet for AI, weather, and geocoding APIs. Core analysis works offline.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="s2-5">
+      <div class="subsection-heading">2.5 Assumptions &amp; Dependencies</div>
+      <ul class="doc-ul">
+        <li>Users have a valid Google account if using Google Sign-In (OAuth 2.0).</li>
+        <li>A valid Google Gemini API key is configured for AI chat functionality.</li>
+        <li>The Open-Meteo and Nominatim APIs remain freely available with current rate limits.</li>
+        <li>The Render.com deployment environment supports Node.js and persistent storage for SQLite.</li>
+        <li>Browsers must support ES2022+ features, CSS custom properties, and localStorage.</li>
+        <li>The admin invite code mechanism (static) is acceptable for the current academic-project scope.</li>
+        <li>Market price data is either fetched live or presented as curated sample data for demonstration.</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 3 — SYSTEM ARCHITECTURE
+  ============================================================ -->
+  <div class="section-card page-break" id="s3">
+    <div class="section-heading"><span class="section-num">3</span>System Architecture</div>
+
+    <div class="subsection-heading">3.1 High-Level Architecture</div>
+    <p>Namma Rytha follows a classic <strong>3-tier client–server architecture</strong> augmented with external API integrations:</p>
+
+    <div class="arch-box">
+      <span class="layer">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="layer">│                   PRESENTATION LAYER (Client)                │</span>
+<span class="layer">└──────────────────────────────────────────────────────────────┘</span>
+  <span class="comp">├── index.html</span>        (Farmer SPA — all feature pages)
+  <span class="comp">├── login.html</span>         (Farmer authentication)
+  <span class="comp">├── admin.html</span>         (Admin dashboard SPA)
+  <span class="comp">├── admin_login.html</span>   (Admin authentication)
+  <span class="comp">├── mobile_app.html</span>    (Mobile-optimised responsive view)
+  <span class="comp">├── app.js</span>             (All frontend business logic ~4000 LOC)
+  <span class="comp">├── style.css</span>          (Main design system ~2600 LOC)
+  <span class="comp">├── smooth.css</span>         (Animations & transitions)
+  <span class="comp">└── translations.js</span>    (i18n for 6 Indian languages)
+        <span class="arrow">↕ HTTPS / REST</span>
+<span class="layer">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="layer">│                APPLICATION LAYER (Node.js Server)            │</span>
+<span class="layer">└──────────────────────────────────────────────────────────────┘</span>
+  <span class="comp">├── server.js</span>          (Express.js REST API — 28 endpoints)
+  <span class="comp">├── Auth Module</span>        (JWT-less session via localStorage + Google OAuth)
+  <span class="comp">├── OTP Store</span>          (In-memory OTP management for password reset)
+  <span class="comp">└── Static Serving</span>     (Serves HTML/CSS/JS via express.static)
+        <span class="arrow">↕ SQLite3 Driver</span>
+<span class="layer">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="layer">│                    DATA LAYER (SQLite)                       │</span>
+<span class="layer">└──────────────────────────────────────────────────────────────┘</span>
+  <span class="db">├── users</span>        <span class="db">├── admins</span>      <span class="db">├── products</span>
+  <span class="db">├── farm_data</span>    <span class="db">├── orders</span>      <span class="db">├── feedback</span>
+  <span class="db">└── activities</span>
+        <span class="arrow">↕ HTTPS</span>
+<span class="layer">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="layer">│                  EXTERNAL SERVICES                           │</span>
+<span class="layer">└──────────────────────────────────────────────────────────────┘</span>
+  <span class="comp">├── Google Gemini 2.0 Flash</span>  (AI farming advice & chat)
+  <span class="comp">├── Open-Meteo API</span>           (Free real-time weather + 7-day forecast)
+  <span class="comp">├── Nominatim (OSM)</span>          (Geocoding: city → lat/lon)
+  <span class="comp">├── Google OAuth 2.0</span>         (Identity provider for login)
+  <span class="comp">└── Leaflet.js + Globe.gl</span>    (Interactive farm map visualisations)
+    </div>
+
+    <div class="subsection-heading">3.2 Technology Stack</div>
+    <div class="tech-stack">
+      <span class="tech-pill"><span class="dot" style="background:#68a063"></span>Node.js v18+</span>
+      <span class="tech-pill"><span class="dot" style="background:#000"></span>Express.js v5</span>
+      <span class="tech-pill"><span class="dot" style="background:#0074d9"></span>SQLite3</span>
+      <span class="tech-pill"><span class="dot" style="background:#e34c26"></span>HTML5</span>
+      <span class="tech-pill"><span class="dot" style="background:#264de4"></span>CSS3 (Vanilla)</span>
+      <span class="tech-pill"><span class="dot" style="background:#f7df1e"></span>JavaScript ES2022</span>
+      <span class="tech-pill"><span class="dot" style="background:#4285f4"></span>Google Gemini AI</span>
+      <span class="tech-pill"><span class="dot" style="background:#34a853"></span>Google OAuth 2.0</span>
+      <span class="tech-pill"><span class="dot" style="background:#5c6bc0"></span>Capacitor v8</span>
+      <span class="tech-pill"><span class="dot" style="background:#3dca6d"></span>Open-Meteo API</span>
+      <span class="tech-pill"><span class="dot" style="background:#7bc8a4"></span>Nominatim OSM</span>
+      <span class="tech-pill"><span class="dot" style="background:#1fb1a9"></span>Leaflet.js</span>
+      <span class="tech-pill"><span class="dot" style="background:#fc6a03"></span>Render.com</span>
+      <span class="tech-pill"><span class="dot" style="background:#a4c7f0"></span>PWA (sw.js)</span>
+    </div>
+
+    <div class="subsection-heading">3.3 Data Flow</div>
+    <ol class="doc-ol">
+      <li>User opens the app → <code>index.html</code> checks <code>localStorage</code> for session token.</li>
+      <li>If unauthenticated → redirected to <code>login.html</code>.</li>
+      <li>On login → credentials sent via POST to <code>/api/login</code> or <code>/api/google-auth</code>.</li>
+      <li>Successful response stored in <code>localStorage</code> as <code>nr_user</code>.</li>
+      <li>Dashboard loads → real-time weather fetched from Open-Meteo, farm data from backend.</li>
+      <li>AI modules process local logic offline; complex queries are sent to Google Gemini API.</li>
+      <li>Activities are logged asynchronously to <code>/api/activity</code> for admin monitoring.</li>
+    </ol>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 4 — FUNCTIONAL REQUIREMENTS
+  ============================================================ -->
+  <div class="section-card page-break" id="s4">
+    <div class="section-heading"><span class="section-num">4</span>Functional Requirements</div>
+
+    <!-- 4.1 Auth -->
+    <div id="s4-1">
+      <div class="subsection-heading">4.1 Authentication Module</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-AUTH-01</span><span class="req-text">The system shall allow farmers to register with first name, last name, email, phone, location, land area (acres), primary crop, and password.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-02</span><span class="req-text">The system shall validate that the email address is unique before creating an account.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-03</span><span class="req-text">The system shall allow farmers to log in with email and password.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-04</span><span class="req-text">The system shall support Google Sign-In via OAuth 2.0; if the Google email already exists, the account shall be linked automatically.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-05</span><span class="req-text">The system shall provide a password-reset flow: generate a 4-digit OTP (valid for 10 minutes), verify OTP, and update password.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-06</span><span class="req-text">The system shall maintain session state via <code>localStorage</code> and automatically redirect unauthenticated users to the login page.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-07</span><span class="req-text">Admins shall register using a secure invite code; Google Sign-In for admins shall only succeed if the email is pre-registered in the admins table.</span></li>
+        <li class="req-item"><span class="req-id">FR-AUTH-08</span><span class="req-text">Mobile users (screen width ≤ 768px or Capacitor native) shall be automatically redirected to the mobile-optimised view.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.2 Dashboard -->
+    <div id="s4-2">
+      <div class="subsection-heading">4.2 Dashboard Module</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-DASH-01</span><span class="req-text">The dashboard shall display real-time KPI cards: Soil Moisture (%), Temperature (°C), Rain Probability (%), and Soil pH.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-02</span><span class="req-text">The dashboard shall display a 5-day weather forecast panel fetched from Open-Meteo.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-03</span><span class="req-text">The dashboard shall show AI-generated farming recommendations refreshed on demand.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-04</span><span class="req-text">The dashboard shall display an active alerts panel with critical, warning, and informational alerts. Alerts shall be individually dismissible.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-05</span><span class="req-text">The dashboard shall provide Quick Action buttons for Irrigate Now, Fertilizer Plan, Find Best Crop, Check Disease Risk, Market Prices, and Ask AI.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-06</span><span class="req-text">The dashboard shall display a mini sustainability score (Water Saved, Eco Score, Yield Index) with links to the full tracker.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-07</span><span class="req-text">The dashboard shall show an Agri-News &amp; Market Trends horizontal slider with market watch, weather insights, and government policy cards.</span></li>
+        <li class="req-item"><span class="req-id">FR-DASH-08</span><span class="req-text">The user shall be able to export a PDF farm report and share it via WhatsApp from the top bar.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.3 Irrigation -->
+    <div id="s4-3">
+      <div class="subsection-heading">4.3 Smart Irrigation Advisor</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-IRR-01</span><span class="req-text">The system shall accept inputs: soil moisture (%), crop type, rain expected (yes/no), temperature (°C), last irrigation (days ago), and field area (acres).</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-02</span><span class="req-text">The system shall compute irrigation decisions: SKIP (rain/moisture sufficient), IRRIGATE NOW (critical moisture), IRRIGATE SOON (sub-optimal), NO IRRIGATION NEEDED.</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-03</span><span class="req-text">The system shall compute water required (litres) based on crop type, moisture deficit, and field area.</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-04</span><span class="req-text">The result shall include: action recommendation, detail explanation, water saved percentage, next irrigation date, and actionable tips.</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-05</span><span class="req-text">The irrigation form shall auto-populate soil moisture and temperature from the current dashboard live values when the tab is opened.</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-06</span><span class="req-text">The system shall save the farm data (moisture, rain probability, timestamp) to the backend after each analysis.</span></li>
+        <li class="req-item"><span class="req-id">FR-IRR-07</span><span class="req-text">The system shall update the sustainability telemetry (water saved metric) after each irrigation analysis.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.4 Fertilizer -->
+    <div id="s4-4">
+      <div class="subsection-heading">4.4 Fertilizer Recommendation Engine</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-FERT-01</span><span class="req-text">The system shall accept: soil pH (4–9), nitrogen (N) kg/acre, phosphorus (P) kg/acre, potassium (K) kg/acre, crop type, and soil type.</span></li>
+        <li class="req-item"><span class="req-id">FR-FERT-02</span><span class="req-text">The system shall compute the NPK deficit against crop-specific ideal requirements for Wheat, Rice, Tomato, Cotton, Sugarcane, and Maize.</span></li>
+        <li class="req-item"><span class="req-id">FR-FERT-03</span><span class="req-text">The system shall prescribe specific fertilisers: Urea (46% N), Super Phosphate (16% P₂O₅), Muriate of Potash (60% K₂O), and Zinc Sulphate as a micronutrient.</span></li>
+        <li class="req-item"><span class="req-id">FR-FERT-04</span><span class="req-text">The system shall generate a soil correction recommendation based on pH: lime for acidic (&lt;5.5), gypsum for alkaline (&gt;7.8).</span></li>
+        <li class="req-item"><span class="req-id">FR-FERT-05</span><span class="req-text">The system shall generate a crop-specific application schedule (basal, split-dose timings).</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.5 Crop -->
+    <div id="s4-5">
+      <div class="subsection-heading">4.5 Crop Advisor</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-CROP-01</span><span class="req-text">The system shall accept: soil type, season (Kharif/Rabi/Zaid), average temperature, annual rainfall (mm), soil pH, and water availability level.</span></li>
+        <li class="req-item"><span class="req-id">FR-CROP-02</span><span class="req-text">The system shall match inputs against a database of 10 crops (Wheat, Rice, Tomato, Cotton, Soybean, Sugarcane, Maize, Onion, Groundnut, Turmeric) using a weighted scoring algorithm.</span></li>
+        <li class="req-item"><span class="req-id">FR-CROP-03</span><span class="req-text">The system shall display the top 5 matching crops ranked by match percentage (max 98%) with medals (🥇🥈🥉) and reason tags.</span></li>
+        <li class="req-item"><span class="req-id">FR-CROP-04</span><span class="req-text">The season selector shall auto-detect the current month and pre-select the appropriate season (Kharif: Jun–Oct, Rabi: Nov–Feb, Zaid: Mar–May).</span></li>
+        <li class="req-item"><span class="req-id">FR-CROP-05</span><span class="req-text">The system shall include a Yield Predictor that estimates total yield (quintals) and estimated revenue (₹) based on crop, area, and season quality.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.6 Disease -->
+    <div id="s4-6">
+      <div class="subsection-heading">4.6 Disease Detector</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-DIS-01</span><span class="req-text">The system shall allow the user to select a crop and check one or more visible symptoms from a symptom grid.</span></li>
+        <li class="req-item"><span class="req-id">FR-DIS-02</span><span class="req-text">The system shall diagnose diseases including: Powdery Mildew, Late Blight, Fusarium Wilt, Bacterial Leaf Blight, Brown Rust, Root Rot, and Yellow Mosaic Virus.</span></li>
+        <li class="req-item"><span class="req-id">FR-DIS-03</span><span class="req-text">Each diagnosis shall include: disease name, description, risk level (Low/Medium/High), treatment plan (chemical + organic), and prevention strategies.</span></li>
+        <li class="req-item"><span class="req-id">FR-DIS-04</span><span class="req-text">The system shall display a Disease Risk Calendar showing historical seasonal risk patterns for the selected crop.</span></li>
+        <li class="req-item"><span class="req-id">FR-DIS-05</span><span class="req-text">Humidity from the live weather data shall auto-populate the disease input form when the tab is opened.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.7 Weather -->
+    <div id="s4-7">
+      <div class="subsection-heading">4.7 Weather Intelligence</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-WX-01</span><span class="req-text">The system shall fetch real-time weather using the Open-Meteo API for the user's current GPS location (via browser Geolocation API) or a manually entered city.</span></li>
+        <li class="req-item"><span class="req-id">FR-WX-02</span><span class="req-text">Current conditions displayed shall include: temperature, apparent temperature (feels like), humidity, wind speed, UV index, weather icon, and rain probability.</span></li>
+        <li class="req-item"><span class="req-id">FR-WX-03</span><span class="req-text">The system shall display a 7-day forecast with daily high/low temperatures, weather icon, and max precipitation probability.</span></li>
+        <li class="req-item"><span class="req-id">FR-WX-04</span><span class="req-text">The system shall derive rain probability for the next 12 hours from hourly data and update the dashboard rain card.</span></li>
+        <li class="req-item"><span class="req-id">FR-WX-05</span><span class="req-text">A topbar weather pill shall always display the current temperature and icon for quick reference.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.8 Market -->
+    <div id="s4-8">
+      <div class="subsection-heading">4.8 Market Price Module</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-MKT-01</span><span class="req-text">The system shall display current mandi prices for major crops (Wheat, Rice, Tomato, Cotton, Onion, Soybean, Maize, Sugarcane, Potato) in ₹/quintal.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKT-02</span><span class="req-text">Prices shall be filterable by state (Karnataka, Maharashtra, Punjab, Uttar Pradesh, Andhra Pradesh, Tamil Nadu).</span></li>
+        <li class="req-item"><span class="req-id">FR-MKT-03</span><span class="req-text">Each price entry shall show the trend (up/down), MSP (Minimum Support Price), and a best-time-to-sell recommendation.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKT-04</span><span class="req-text">The system shall display an AI-powered "Price Forecast" section indicating expected price movement for the next 30 days.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.9 Sustainability -->
+    <div id="s4-9">
+      <div class="subsection-heading">4.9 Sustainability Tracker</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-SUS-01</span><span class="req-text">The system shall maintain a sustainability score (0–100) per user, persisted to the backend database.</span></li>
+        <li class="req-item"><span class="req-id">FR-SUS-02</span><span class="req-text">The score shall be computed from: water saved (litres), irrigation checks, fertilizer checks, disease checks, and AI usage events.</span></li>
+        <li class="req-item"><span class="req-id">FR-SUS-03</span><span class="req-text">The system shall display animated circular progress indicators for Water Saved, Eco Score, and Yield Index.</span></li>
+        <li class="req-item"><span class="req-id">FR-SUS-04</span><span class="req-text">The system shall maintain an achievements system with 6 badges (Water Warrior, Green Thumb, Data Farmer, Gold Farmer, Earth Guardian, Super Farmer).</span></li>
+        <li class="req-item"><span class="req-id">FR-SUS-05</span><span class="req-text">The system shall display a telemetry breakdown of total water saved (litres), chemicals reduced (kg), CO₂ equivalent avoided, and AI-based decisions made.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.10 Marketplace -->
+    <div id="s4-10">
+      <div class="subsection-heading">4.10 Marketplace</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-MKP-01</span><span class="req-text">The system shall display products fetched from the backend API, categorised into: Tractors &amp; Equipment, Irrigation &amp; Water, Hand Tools, Sprayers, Harvesting, Smart Accessories, Safety &amp; PPE.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKP-02</span><span class="req-text">Products shall display: name, category, price (₹), description, brand, rating (stars), and a suitable crop/soil filter tag.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKP-03</span><span class="req-text">The system shall support category filtering, price sorting (low-high, high-low), and a product search box.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKP-04</span><span class="req-text">Users shall be able to add products to a shopping cart and a wishlist. Cart and wishlist counts shall be displayed in the topbar.</span></li>
+        <li class="req-item"><span class="req-id">FR-MKP-05</span><span class="req-text">Users shall be able to place an order; the order shall be saved to the backend <code>orders</code> table with status "pending".</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.11 Admin -->
+    <div id="s4-11">
+      <div class="subsection-heading">4.11 Admin Panel</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-ADMIN-01</span><span class="req-text">The admin panel shall display summary KPI cards: Total Farmers, Active Users (last 24h), Total Products, and Pending Orders.</span></li>
+        <li class="req-item"><span class="req-id">FR-ADMIN-02</span><span class="req-text">The admin shall be able to view, search, and delete farmer accounts from the Farmers Management table.</span></li>
+        <li class="req-item"><span class="req-id">FR-ADMIN-03</span><span class="req-text">The admin shall be able to add, edit (name, category, price, description), and delete products from the Products Management table.</span></li>
+        <li class="req-item"><span class="req-id">FR-ADMIN-04</span><span class="req-text">The admin shall be able to view all recent orders with user name, items, total, and order status.</span></li>
+        <li class="req-item"><span class="req-id">FR-ADMIN-05</span><span class="req-text">The admin shall be able to view an activity log showing all farmer actions (page views, analyses, orders) with timestamps.</span></li>
+        <li class="req-item"><span class="req-id">FR-ADMIN-06</span><span class="req-text">The admin panel shall support Google Sign-In; only pre-registered admin emails shall be allowed to log in via Google.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.12 AI Chat -->
+    <div id="s4-12">
+      <div class="subsection-heading">4.12 AI Chat Advisor</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-AI-01</span><span class="req-text">The system shall provide a floating chat interface accessible from any page via a chat button.</span></li>
+        <li class="req-item"><span class="req-id">FR-AI-02</span><span class="req-text">Chat shall be powered by Google Gemini 2.0 Flash API, with a system prompt that positions the AI as an expert Indian agricultural advisor.</span></li>
+        <li class="req-item"><span class="req-id">FR-AI-03</span><span class="req-text">The system shall maintain a multi-turn conversation history (chat history) within the current session.</span></li>
+        <li class="req-item"><span class="req-id">FR-AI-04</span><span class="req-text">Context-sensitive "Ask AI" buttons throughout the app shall pre-fill the chat with relevant field data (moisture, crop, symptoms, etc.).</span></li>
+        <li class="req-item"><span class="req-id">FR-AI-05</span><span class="req-text">The system shall fall back to curated offline responses if the Gemini API key is not configured or the request fails.</span></li>
+        <li class="req-item"><span class="req-id">FR-AI-06</span><span class="req-text">Voice input shall be supported via the Web Speech API for hands-free query entry.</span></li>
+      </ul>
+    </div>
+
+    <!-- 4.13 Multilingual -->
+    <div id="s4-13">
+      <div class="subsection-heading">4.13 Multilingual Support</div>
+      <ul class="req-list">
+        <li class="req-item"><span class="req-id">FR-I18N-01</span><span class="req-text">The system shall support 6 languages: English (default), Kannada, Hindi, Telugu, Tamil, and Marathi.</span></li>
+        <li class="req-item"><span class="req-id">FR-I18N-02</span><span class="req-text">Language preference shall be persisted in <code>localStorage</code> and applied on every page load.</span></li>
+        <li class="req-item"><span class="req-id">FR-I18N-03</span><span class="req-text">UI elements marked with <code>data-i18n</code> attributes shall be dynamically translated using the <code>TRANSLATIONS</code> dictionary.</span></li>
+        <li class="req-item"><span class="req-id">FR-I18N-04</span><span class="req-text">A language switcher dropdown in the topbar shall allow users to switch language at any time without reloading the page.</span></li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 5 — NON-FUNCTIONAL REQUIREMENTS
+  ============================================================ -->
+  <div class="section-card page-break" id="s5">
+    <div class="section-heading"><span class="section-num">5</span>Non-Functional Requirements</div>
+
+    <div class="nfr-grid">
+      <div class="nfr-card">
+        <div class="nfr-card-title">⚡ Performance</div>
+        <p>Initial page load shall complete in &lt;3 seconds on a 4G connection (≥10 Mbps).</p>
+        <p>AI analysis results (irrigation, fertilizer, crop) shall be rendered within 1 second (local computation).</p>
+        <p>Gemini API responses shall appear within 5 seconds under normal network conditions.</p>
+        <p>Backend REST endpoints shall respond in &lt;200ms for database reads under normal load.</p>
+      </div>
+      <div class="nfr-card">
+        <div class="nfr-card-title">🔒 Security</div>
+        <p>Passwords shall be stored as plaintext only in the current academic prototype; production deployment MUST use bcrypt hashing.</p>
+        <p>Admin access is gated by invite code; Google OAuth admin login is restricted to pre-registered emails.</p>
+        <p>CORS is enabled; API endpoints shall validate required fields and return 400/401/500 HTTP codes.</p>
+        <p>OTPs expire after 10 minutes and are invalidated after single use.</p>
+      </div>
+      <div class="nfr-card">
+        <div class="nfr-card-title">📱 Usability</div>
+        <p>The UI shall be fully responsive — optimised for desktop (≥1024px), tablet (768–1023px), and mobile (&lt;768px).</p>
+        <p>Mobile users shall be automatically redirected to the mobile-optimised view.</p>
+        <p>The interface shall provide visual feedback (toast notifications, loading spinners) for all asynchronous operations.</p>
+        <p>WCAG 2.1 AA contrast ratios shall be maintained throughout the UI.</p>
+      </div>
+      <div class="nfr-card">
+        <div class="nfr-card-title">🌐 Availability</div>
+        <p>Core AI analysis features (irrigation, fertilizer, crop, disease) operate entirely offline after initial load.</p>
+        <p>Cloud deployment on Render.com free tier may experience cold-start latency of up to 30 seconds after inactivity.</p>
+        <p>Target uptime: ≥99% for locally hosted deployment.</p>
+        <p>Service Worker (sw.js) caches static assets for offline PWA functionality.</p>
+      </div>
+      <div class="nfr-card">
+        <div class="nfr-card-title">🔧 Maintainability</div>
+        <p>All API endpoints are self-contained in <code>server.js</code> with consistent response formats.</p>
+        <p>Frontend logic is modular — each feature (irrigation, fertilizer, etc.) is a self-contained function set in <code>app.js</code>.</p>
+        <p>Translation strings are centralised in <code>translations.js</code> for easy language additions.</p>
+      </div>
+      <div class="nfr-card">
+        <div class="nfr-card-title">📈 Scalability</div>
+        <p>SQLite is suitable for up to ~1,000 concurrent users; for production scale, migration to PostgreSQL is recommended.</p>
+        <p>The stateless REST API design supports horizontal scaling behind a load balancer.</p>
+        <p>Product catalog and user data are unbounded by schema and support any number of entries.</p>
+      </div>
+    </div>
+
+    <table class="doc-table" style="margin-top:16px">
+      <thead><tr><th>NFR</th><th>Category</th><th>Metric / Target</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td>NFR-01</td><td>Performance</td><td>Page load &lt;3s on 4G</td><td><span class="badge badge-high">High</span></td></tr>
+        <tr><td>NFR-02</td><td>Performance</td><td>AI analysis render &lt;1s</td><td><span class="badge badge-high">High</span></td></tr>
+        <tr><td>NFR-03</td><td>Security</td><td>OTP expiry 10 minutes</td><td><span class="badge badge-high">High</span></td></tr>
+        <tr><td>NFR-04</td><td>Security</td><td>Admin restricted by invite code</td><td><span class="badge badge-high">High</span></td></tr>
+        <tr><td>NFR-05</td><td>Usability</td><td>Fully responsive ≥360px width</td><td><span class="badge badge-high">High</span></td></tr>
+        <tr><td>NFR-06</td><td>Availability</td><td>Offline-capable core features via PWA</td><td><span class="badge badge-medium">Medium</span></td></tr>
+        <tr><td>NFR-07</td><td>Localisation</td><td>6 Indian language UI support</td><td><span class="badge badge-medium">Medium</span></td></tr>
+        <tr><td>NFR-08</td><td>Scalability</td><td>SQLite → PostgreSQL upgrade path</td><td><span class="badge badge-low">Low</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 6 — USE CASE DESCRIPTIONS
+  ============================================================ -->
+  <div class="section-card page-break" id="s6">
+    <div class="section-heading"><span class="section-num">6</span>Use Case Descriptions</div>
+
+    <div class="uc-block">
+      <div class="uc-header">🔐 UC-01: Farmer Registration and Login</div>
+      <div class="uc-body">
+        <div class="uc-row"><div class="uc-label">Actor</div><div>Farmer (new user)</div></div>
+        <div class="uc-row"><div class="uc-label">Precondition</div><div>User has a unique email address. System is running.</div></div>
+        <div class="uc-row"><div class="uc-label">Main Flow</div><div>1. User opens login page → clicks "Sign Up". 2. Fills registration form (name, email, phone, location, area, crop, password). 3. Submits → POST /api/signup. 4. System creates account, returns user ID. 5. User stored in localStorage. 6. Redirected to dashboard.</div></div>
+        <div class="uc-row"><div class="uc-label">Alt Flow</div><div>A1: Email already exists → 400 error → show "Email already registered". A2: Google Sign-In → POST /api/google-auth → verify token → upsert user → redirect.</div></div>
+        <div class="uc-row"><div class="uc-label">Postcondition</div><div>User is authenticated and can access all dashboard features.</div></div>
+      </div>
+    </div>
+
+    <div class="uc-block">
+      <div class="uc-header">💧 UC-02: Smart Irrigation Analysis</div>
+      <div class="uc-body">
+        <div class="uc-row"><div class="uc-label">Actor</div><div>Authenticated Farmer</div></div>
+        <div class="uc-row"><div class="uc-label">Precondition</div><div>Farmer is logged in. Irrigation page is loaded with live data pre-filled.</div></div>
+        <div class="uc-row"><div class="uc-label">Main Flow</div><div>1. Farmer opens Irrigation Advisor tab. 2. Soil moisture auto-fills from dashboard. 3. Farmer adjusts crop type, rain toggle, temperature. 4. Clicks "Analyze &amp; Recommend". 5. System runs smartIrrigation() algorithm. 6. Result displayed: action, water quantity, tips, next irrigation date.</div></div>
+        <div class="uc-row"><div class="uc-label">Alt Flow</div><div>A1: Farmer clicks "Ask AI Advisor" → Gemini API called with field data context. A2: Farmer clicks "Quick Irrigate" from dashboard → pre-sets moisture to 25%, auto-runs analysis.</div></div>
+        <div class="uc-row"><div class="uc-label">Postcondition</div><div>Farm data synced to backend. Sustainability telemetry updated. Activity logged.</div></div>
+      </div>
+    </div>
+
+    <div class="uc-block">
+      <div class="uc-header">🌾 UC-03: Crop Recommendation</div>
+      <div class="uc-body">
+        <div class="uc-row"><div class="uc-label">Actor</div><div>Authenticated Farmer</div></div>
+        <div class="uc-row"><div class="uc-label">Precondition</div><div>Farmer is logged in. Crop Advisor page is selected.</div></div>
+        <div class="uc-row"><div class="uc-label">Main Flow</div><div>1. Farmer opens Crop Advisor. 2. Season auto-detected from current month. Temperature pre-filled from live weather. 3. Farmer inputs soil type, rainfall estimate, pH, water availability. 4. Clicks "Recommend Best Crops". 5. System runs weighted scoring against 10-crop database. 6. Top 5 crops displayed with match %, reason, and tags.</div></div>
+        <div class="uc-row"><div class="uc-label">Postcondition</div><div>Crop recommendations displayed. Farmer can request Yield Prediction or AI explanation.</div></div>
+      </div>
+    </div>
+
+    <div class="uc-block">
+      <div class="uc-header">🔐 UC-04: Admin Product Management</div>
+      <div class="uc-body">
+        <div class="uc-row"><div class="uc-label">Actor</div><div>Administrator</div></div>
+        <div class="uc-row"><div class="uc-label">Precondition</div><div>Admin is authenticated via admin_login.html.</div></div>
+        <div class="uc-row"><div class="uc-label">Main Flow</div><div>1. Admin opens Products tab. 2. Clicks "Add Product" → fills form (name, category, price, description). 3. Submits → POST /api/products → product saved. 4. Admin can click ✏️ Edit → modify any field → PUT /api/products/:id. 5. Admin can click 🗑️ Delete → DELETE /api/products/:id.</div></div>
+        <div class="uc-row"><div class="uc-label">Postcondition</div><div>Product catalog updated. Changes immediately visible to all farmers in Marketplace.</div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 7 — DATABASE DESIGN
+  ============================================================ -->
+  <div class="section-card page-break" id="s7">
+    <div class="section-heading"><span class="section-num">7</span>Database Design</div>
+
+    <p>Namma Rytha uses an <strong>SQLite</strong> embedded relational database (<code>database.sqlite</code>) with the following schema:</p>
+
+    <div class="subsection-heading">7.1 Entity–Relationship Summary</div>
+    <table class="doc-table">
+      <thead><tr><th>Table</th><th>Primary Key</th><th>Relationships</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>id (AUTOINCREMENT)</td><td>1:1 → farm_data; 1:N → activities, orders</td><td>Registered farmers</td></tr>
+        <tr><td><code>admins</code></td><td>id (AUTOINCREMENT)</td><td>Independent</td><td>Platform administrators</td></tr>
+        <tr><td><code>farm_data</code></td><td>userId (FK → users)</td><td>N:1 → users</td><td>Latest farm telemetry per user</td></tr>
+        <tr><td><code>products</code></td><td>id (AUTOINCREMENT)</td><td>Referenced by orders.items</td><td>Agricultural tools/accessories</td></tr>
+        <tr><td><code>orders</code></td><td>id (AUTOINCREMENT)</td><td>N:1 → users</td><td>Purchase orders from marketplace</td></tr>
+        <tr><td><code>feedback</code></td><td>id (AUTOINCREMENT)</td><td>N:1 → users</td><td>Farmer feedback and ratings</td></tr>
+        <tr><td><code>activities</code></td><td>id (AUTOINCREMENT)</td><td>N:1 → users</td><td>Audit log of user actions</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subsection-heading">7.2 Table Schemas</div>
+
+    <div class="arch-box">
+<span class="layer">-- users --</span>
+<span class="db">id</span>               INTEGER PRIMARY KEY AUTOINCREMENT
+<span class="db">firstName</span>        TEXT          NOT NULL
+<span class="db">lastName</span>         TEXT
+<span class="db">email</span>            TEXT          UNIQUE NOT NULL
+<span class="db">phone</span>            TEXT
+<span class="db">location</span>         TEXT          -- state/city of the farmer
+<span class="db">area</span>             TEXT          -- farm area in acres
+<span class="db">crop</span>             TEXT          -- primary crop
+<span class="db">password</span>         TEXT          -- plaintext (prototype); bcrypt in production
+<span class="db">google_id</span>        TEXT          -- Google OAuth sub ID
+<span class="db">avatar</span>           TEXT          -- Google profile picture URL
+<span class="db">sustainability_score</span> INTEGER  DEFAULT 70
+
+<span class="layer">-- farm_data --</span>
+<span class="db">userId</span>           INTEGER       REFERENCES users(id)
+<span class="db">moisture</span>         REAL          -- percentage
+<span class="db">rainProbability</span>  INTEGER       -- percentage
+<span class="db">lastIrrigated</span>    TEXT          -- ISO8601 timestamp
+
+<span class="layer">-- products --</span>
+<span class="db">id</span>               INTEGER PRIMARY KEY AUTOINCREMENT
+<span class="db">name</span>             TEXT
+<span class="db">category</span>         TEXT
+<span class="db">price</span>            REAL          -- INR
+<span class="db">description</span>      TEXT
+<span class="db">image</span>            TEXT          -- emoji or URL
+<span class="db">brand</span>            TEXT
+<span class="db">rating</span>           REAL          -- 0.0 – 5.0
+<span class="db">suitable_crop</span>    TEXT          -- 'all' or specific crop
+<span class="db">suitable_soil</span>    TEXT          -- 'all' or specific soil type
+
+<span class="layer">-- orders --</span>
+<span class="db">id</span>               INTEGER PRIMARY KEY AUTOINCREMENT
+<span class="db">userId</span>           INTEGER
+<span class="db">userName</span>         TEXT
+<span class="db">items</span>            TEXT          -- JSON string of cart items
+<span class="db">total</span>            REAL          -- order total in INR
+<span class="db">status</span>           TEXT          DEFAULT 'pending'
+<span class="db">timestamp</span>        DATETIME      DEFAULT CURRENT_TIMESTAMP
+
+<span class="layer">-- activities --</span>
+<span class="db">id</span>               INTEGER PRIMARY KEY AUTOINCREMENT
+<span class="db">userId</span>           INTEGER
+<span class="db">userName</span>         TEXT
+<span class="db">action</span>           TEXT          -- e.g. 'irrigation_check', 'view_page'
+<span class="db">details</span>          TEXT          -- human-readable details
+<span class="db">timestamp</span>        DATETIME      DEFAULT CURRENT_TIMESTAMP
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 8 — API SPECIFICATION
+  ============================================================ -->
+  <div class="section-card page-break" id="s8">
+    <div class="section-heading"><span class="section-num">8</span>REST API Specification</div>
+    <p>Base URL (local): <code>http://localhost:3000</code> &nbsp;|&nbsp; Base URL (cloud): <code>https://namma-rytha-backend.onrender.com</code></p>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Request Body / Params</th><th>Response</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/signup</td><td>Register farmer</td><td>firstName, lastName, email, phone, location, area, crop, password</td><td>{ id, firstName, email, … }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/login</td><td>Farmer login</td><td>email, password</td><td>{ id, name, email, location, … }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/google-auth</td><td>Google OAuth farmer</td><td>credential (ID token)</td><td>{ id, name, email, avatar, loginMethod }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/forgot-password</td><td>Generate OTP</td><td>email</td><td>{ success, otp }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/reset-password</td><td>Verify OTP &amp; update password</td><td>email, otp, newPassword</td><td>{ success, message }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/user/update</td><td>Update farmer profile</td><td>id, firstName, lastName, location, area, crop, phone</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/user/update-sustainability</td><td>Update eco score</td><td>userId, score</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td>/api/farm-data/:userId</td><td>Get latest farm data</td><td>userId (URL param)</td><td>{ moisture, rainProbability, lastIrrigated }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/farm-data</td><td>Save/update farm data</td><td>userId, moisture, rainProbability, lastIrrigated</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td>/api/products</td><td>List all products</td><td>—</td><td>Array of product objects</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/products</td><td>Add product (admin)</td><td>name, category, price, description, image, suitable_crop, suitable_soil</td><td>{ id, name, … }</td></tr>
+        <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/products/:id</td><td>Update product (admin)</td><td>name, category, price, description, image, brand, rating</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-high">DELETE</span></td><td>/api/products/:id</td><td>Delete product (admin)</td><td>id (URL param)</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td>/api/farmers</td><td>List all farmers (admin)</td><td>—</td><td>Array of user objects</td></tr>
+        <tr><td><span class="badge badge-high">DELETE</span></td><td>/api/farmers/:id</td><td>Delete farmer (admin)</td><td>id (URL param)</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/admin/signup</td><td>Register admin</td><td>firstName, lastName, email, phone, password, inviteCode</td><td>{ id, name, email }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/admin/login</td><td>Admin login</td><td>email, password</td><td>{ id, name, email }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/admin/google-auth</td><td>Google OAuth admin</td><td>credential (ID token)</td><td>{ id, name, email, avatar }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/feedback</td><td>Submit feedback</td><td>userId, name, email, rating, message</td><td>{ success, id }</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/activity</td><td>Log user activity</td><td>userId, userName, action, details</td><td>{ success }</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td>/api/activities</td><td>Get activity log (admin)</td><td>?limit=N</td><td>Array of activity objects</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td>/api/orders</td><td>Place order</td><td>userId, userName, items, total</td><td>{ success, id }</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td>/api/orders</td><td>Get orders (admin)</td><td>?limit=N</td><td>Array of order objects</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 9 — RISK ANALYSIS
+  ============================================================ -->
+  <div class="section-card page-break" id="s9">
+    <div class="section-heading"><span class="section-num">9</span>Risk Analysis</div>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>#</th><th>Risk</th><th>Category</th><th>Likelihood</th><th>Impact</th><th>Mitigation Strategy</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R-01</td>
+          <td>Gemini API key quota exhausted or revoked</td>
+          <td>External</td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td>Implement offline fallback responses. Allow user to configure their own API key in Settings.</td>
+        </tr>
+        <tr>
+          <td>R-02</td>
+          <td>Open-Meteo or Nominatim API unavailable</td>
+          <td>External</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td>Fall back to user-entered location. Cache last-known weather in localStorage.</td>
+        </tr>
+        <tr>
+          <td>R-03</td>
+          <td>Render.com free-tier cold start delay (up to 60s)</td>
+          <td>Infrastructure</td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td>Show loading animation. Recommend paid Render tier for production. Local deployment avoids this.</td>
+        </tr>
+        <tr>
+          <td>R-04</td>
+          <td>SQLite database file corruption or data loss</td>
+          <td>Data</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td>Regular database backups. For production, migrate to PostgreSQL with replication.</td>
+        </tr>
+        <tr>
+          <td>R-05</td>
+          <td>Password stored as plaintext (security vulnerability)</td>
+          <td>Security</td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td>Implement bcrypt hashing before production deployment. Add JWT-based session management.</td>
+        </tr>
+        <tr>
+          <td>R-06</td>
+          <td>Admin invite code exposed in client-side code</td>
+          <td>Security</td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td>Validate invite code server-side only (currently done). Move to environment variable.</td>
+        </tr>
+        <tr>
+          <td>R-07</td>
+          <td>Inaccurate AI recommendations mislead farmers</td>
+          <td>Functional</td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td>Add disclaimer text. Show recommendations as advisory only. Encourage consulting local KVK.</td>
+        </tr>
+        <tr>
+          <td>R-08</td>
+          <td>Browser geolocation denied by user</td>
+          <td>UX</td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td>Provide city-name search as fallback. Persist last location in localStorage.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ============================================================
+       SECTION 10 — APPENDICES
+  ============================================================ -->
+  <div class="section-card page-break" id="s10">
+    <div class="section-heading"><span class="section-num">10</span>Appendices</div>
+
+    <div class="subsection-heading">10.1 Revision History</div>
+    <table class="doc-table rev-table">
+      <thead><tr><th>Version</th><th>Date</th><th>Author</th><th>Description of Changes</th></tr></thead>
+      <tbody>
+        <tr><td>0.1</td><td>Jan 2026</td><td>Development Team</td><td>Initial project conception and requirement gathering</td></tr>
+        <tr><td>0.5</td><td>Mar 2026</td><td>Development Team</td><td>Core modules implemented (irrigation, fertilizer, crop, weather)</td></tr>
+        <tr><td>0.8</td><td>Apr 2026</td><td>Development Team</td><td>Admin panel, marketplace, sustainability tracker added</td></tr>
+        <tr><td>0.9</td><td>May 2026</td><td>Development Team</td><td>Google OAuth, multilingual support, Android build via Capacitor</td></tr>
+        <tr><td>1.0</td><td>Jun 2026</td><td>Development Team</td><td>Final release: SRS document created, all modules stabilised</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subsection-heading">10.2 External API References</div>
+    <table class="doc-table">
+      <thead><tr><th>Service</th><th>Purpose</th><th>URL</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Google Gemini 2.0 Flash</td><td>Generative AI farming advice</td><td>generativelanguage.googleapis.com</td><td>Free tier (60 RPM)</td></tr>
+        <tr><td>Open-Meteo</td><td>Real-time weather + 7-day forecast</td><td>api.open-meteo.com</td><td>Free (no key required)</td></tr>
+        <tr><td>Nominatim (OSM)</td><td>Geocoding: city name → coordinates</td><td>nominatim.openstreetmap.org</td><td>Free (1 req/s limit)</td></tr>
+        <tr><td>Google OAuth 2.0</td><td>Social sign-in for farmers and admins</td><td>accounts.google.com</td><td>Free</td></tr>
+        <tr><td>Leaflet.js</td><td>Interactive map visualisation</td><td>unpkg.com/leaflet</td><td>Free (MIT License)</td></tr>
+        <tr><td>Globe.gl</td><td>3D globe visualisation</td><td>unpkg.com/globe.gl</td><td>Free (MIT License)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subsection-heading">10.3 Supported Crops</div>
+    <div class="tech-stack">
+      <span class="tech-pill">🌾 Wheat</span>
+      <span class="tech-pill">🍚 Rice</span>
+      <span class="tech-pill">🍅 Tomato</span>
+      <span class="tech-pill">🌸 Cotton</span>
+      <span class="tech-pill">🫘 Soybean</span>
+      <span class="tech-pill">🎋 Sugarcane</span>
+      <span class="tech-pill">🌽 Maize</span>
+      <span class="tech-pill">🧅 Onion</span>
+      <span class="tech-pill">🥜 Groundnut</span>
+      <span class="tech-pill">🟡 Turmeric</span>
+    </div>
+
+    <div class="subsection-heading">10.4 Supported Soil Types</div>
+    <div class="tech-stack">
+      <span class="tech-pill">Loamy</span>
+      <span class="tech-pill">Clay</span>
+      <span class="tech-pill">Sandy</span>
+      <span class="tech-pill">Black Cotton</span>
+      <span class="tech-pill">Red</span>
+      <span class="tech-pill">Silt</span>
+      <span class="tech-pill">Laterite</span>
+    </div>
+
+    <div class="subsection-heading">10.5 File Structure</div>
+    <div class="arch-box">
+nimma-rytha/
+<span class="comp">├── server.js</span>          Express.js backend server (28 REST endpoints, 626 LOC)
+<span class="comp">├── app.js</span>             Frontend business logic (~4057 LOC)
+<span class="comp">├── index.html</span>         Main farmer SPA (~2292 LOC)
+<span class="comp">├── login.html</span>         Farmer authentication page
+<span class="comp">├── admin.html</span>         Admin dashboard SPA
+<span class="comp">├── admin_login.html</span>   Admin authentication page
+<span class="comp">├── mobile_app.html</span>    Mobile-optimised view
+<span class="comp">├── style.css</span>          Main CSS design system (~100 KB)
+<span class="comp">├── smooth.css</span>         Animation styles
+<span class="comp">├── translations.js</span>    i18n strings for 6 languages (~50 KB)
+<span class="comp">├── sw.js</span>              Service Worker for PWA offline caching
+<span class="comp">├── manifest.json</span>      PWA manifest
+<span class="comp">├── logo.png</span>           App logo
+<span class="db">├── database.sqlite</span>    SQLite database file (auto-created)
+<span class="comp">├── package.json</span>       Node.js dependencies
+<span class="comp">├── render.yaml</span>        Render.com deployment configuration
+<span class="comp">└── android/</span>           Capacitor Android project directory
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <p><strong>Namma Rytha — ನಮ್ಮ ರೈತ</strong> &nbsp;|&nbsp; Software Requirements Specification v1.0</p>
+    <p>Document prepared: June 2026 &nbsp;|&nbsp; Confidential — For Academic Evaluation</p>
+    <p style="margin-top:6px;font-size:10px;">🌾 Empowering Indian Farmers with Artificial Intelligence</p>
+  </div>
+
+</div><!-- /doc-wrapper -->
+</body>
+</html>

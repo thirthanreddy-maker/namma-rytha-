@@ -1,0 +1,9 @@
+[build]
+  publish = "dist"
+  command = "node build-frontend.js"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://namma-rytha-backend.onrender.com/api/:splat"
+  status = 200
+  force = true

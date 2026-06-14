@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Namma Rytha Mobile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile_app.css">
+  <link rel="manifest" href="mobile_manifest.json">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="m-header">
+    <div class="m-logo">
+      <img src="logo.png" alt="Logo">
+      <div class="m-logo-text">Namma <span>Rytha</span></div>
+    </div>
+    <div style="display:flex; gap:12px">
+      <div id="m-weather-pill" style="background:rgba(255,255,255,0.05); padding:6px 12px; border-radius:12px; font-size:12px; display:flex; align-items:center; gap:5px">
+        ☀️ 28°C
+      </div>
+      <div style="font-size:20px">🔔</div>
+    </div>
+  </header>
+
+  <!-- MAIN PAGES CONTAINER -->
+  <main id="m-pages">
+    
+    <!-- DASHBOARD -->
+    <section class="m-page active" id="m-dashboard">
+      <div class="m-hero m-fade">
+        <div class="m-hero-sub">Namaste, Farmer! 🙏</div>
+        <div class="m-hero-title">Your Farm is Safe</div>
+        <p style="font-size:12px; color:var(--eco-text-muted); margin-top:5px">AI says: Soil moisture is optimal for Tomato field.</p>
+        <div style="margin-top:15px; display:flex; gap:10px">
+          <button class="m-btn" onclick="mShowPage('advisors')">🚀 Get Advice</button>
+          <button class="m-btn" style="background:rgba(255,255,255,0.1); color:white" onclick="openAIChat()">🤖 AI Chat</button>
+        </div>
+      </div>
+
+      <div class="m-section-header">
+        <div class="m-section-title">Farm Status</div>
+        <a href="#" class="m-view-all">See details</a>
+      </div>
+
+      <div class="m-grid m-fade" style="animation-delay:0.1s">
+        <div class="m-card">
+          <div class="m-card-icon">💧</div>
+          <div class="m-card-title">Moisture</div>
+          <div class="m-card-val" id="statMoisture">42%</div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-icon">☁️</div>
+          <div class="m-card-title">Rain Prob</div>
+          <div class="m-card-val" id="statRain">10%</div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-icon">🧪</div>
+          <div class="m-card-title">Soil pH</div>
+          <div class="m-card-val">6.8</div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-icon">🏅</div>
+          <div class="m-card-title">Eco Score</div>
+          <div class="m-card-val">78</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADVISORS PAGE -->
+    <section class="m-page" id="m-advisors" style="display:none">
+      <div class="m-section-header">
+        <div class="m-section-title">AI Advisors</div>
+      </div>
+      <div class="m-prod-list m-fade">
+        <div class="m-prod-card" onclick="mShowSubPage('irrigation')">
+          <div class="m-prod-img">💧</div>
+          <div class="m-prod-info">
+            <div class="m-prod-name">Irrigation Advisor</div>
+            <p style="font-size:12px; color:var(--eco-text-muted)">Smart water management</p>
+          </div>
+          <div style="align-self:center">➡️</div>
+        </div>
+        <div class="m-prod-card" onclick="mShowSubPage('fertilizer')">
+          <div class="m-prod-img">🌿</div>
+          <div class="m-prod-info">
+            <div class="m-prod-name">Fertilizer Engine</div>
+            <p style="font-size:12px; color:var(--eco-text-muted)">Balanced nutrient dosage</p>
+          </div>
+          <div style="align-self:center">➡️</div>
+        </div>
+        <div class="m-prod-card" onclick="startCamera()">
+          <div class="m-prod-img">🔬</div>
+          <div class="m-prod-info">
+            <div class="m-prod-name">Disease Detector</div>
+            <p style="font-size:12px; color:var(--eco-text-muted)">AI leaf scan & diagnosis</p>
+          </div>
+          <div style="align-self:center">➡️</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKETPLACE PAGE -->
+    <section class="m-page" id="m-marketplace" style="display:none">
+      <div class="m-section-header">
+        <div class="m-section-title">Marketplace</div>
+        <div style="display:flex; gap:10px">
+          <div onclick="mShowCart()" style="position:relative">🛒 <span id="m-cart-badge" style="position:absolute; top:-5px; right:-5px; background:var(--eco-accent); color:var(--eco-deep); font-size:10px; padding:2px 5px; border-radius:50%">0</span></div>
+        </div>
+      </div>
+      <div id="m-products-list" class="m-prod-list m-fade">
+        <!-- Products injected here -->
+      </div>
+    </section>
+
+    <!-- PROFILE PAGE -->
+    <section class="m-page" id="m-profile" style="display:none">
+       <div class="m-hero m-fade" style="text-align:center">
+          <div style="width:80px; height:80px; background:var(--eco-accent); border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:40px">👨‍🌾</div>
+          <div class="m-hero-title">Farmer Thirthan</div>
+          <div class="m-hero-sub">📍 Bengaluru, Karnataka</div>
+          <button class="m-btn" style="margin:15px auto 0" onclick="doLogout()">Logout</button>
+       </div>
+       <div class="m-grid">
+         <div class="m-card" onclick="mShowPage('feedback')">
+           <div class="m-card-icon">💬</div>
+           <div class="m-card-title">Feedback</div>
+         </div>
+         <div class="m-card">
+           <div class="m-card-icon">⚙️</div>
+           <div class="m-card-title">Settings</div>
+         </div>
+       </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="m-nav">
+    <a href="#" class="m-nav-item active" data-m-page="dashboard">
+      <div class="m-nav-icon">🏠</div>
+      <span>Home</span>
+    </a>
+    <a href="#" class="m-nav-item" data-m-page="advisors">
+      <div class="m-nav-icon">🧬</div>
+      <span>Advisors</span>
+    </a>
+    <a href="#" class="m-nav-item" data-m-page="marketplace">
+      <div class="m-nav-icon">🛒</div>
+      <span>Shop</span>
+    </a>
+    <a href="#" class="m-nav-item" data-m-page="profile">
+      <div class="m-nav-icon">👤</div>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- MODALS (Reusing concepts from app.js) -->
+  <div id="m-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; backdrop-filter:blur(5px)">
+     <div id="m-modal-content" style="position:absolute; bottom:0; left:0; right:0; background:var(--eco-deep); padding:25px; border-radius:30px 30px 0 0; animation: slideUp 0.4s ease">
+        <!-- Content injected -->
+     </div>
+  </div>
+
+  <style>
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  </style>
+
+  <script src="mobile_app.js"></script>
+</body>
+</html>
