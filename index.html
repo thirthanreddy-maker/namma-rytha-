@@ -33,12 +33,6 @@
         } else {
           window.location.replace('login.html');
         }
-      } else {
-        // Auto-redirect mobile users to the dedicated mobile app version
-        const _isNative = (() => { try { return window.Capacitor && window.Capacitor.isNativePlatform(); } catch(e) { return false; } })();
-        if (window.innerWidth <= 768 || _isNative) {
-          window.location.replace('mobile_app.html' + window.location.search);
-        }
       }
     })();
   </script>

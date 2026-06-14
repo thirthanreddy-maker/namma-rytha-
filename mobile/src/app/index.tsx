@@ -11,11 +11,7 @@ export default function IndexScreen() {
 
   // Default server URLs
   const getDefaultUrl = () => {
-    // Android emulator: 10.0.2.2. Web/iOS simulator: localhost.
-    if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:3000/login.html';
-    }
-    return 'http://localhost:3000/login.html';
+    return 'https://namma-rytha-thirthan.netlify.app/login.html';
   };
 
   const [url, setUrl] = useState(getDefaultUrl());
