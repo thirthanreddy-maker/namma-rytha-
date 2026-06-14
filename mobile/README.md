@@ -1,56 +1,66 @@
-# Welcome to your Expo app 👋
+# Namma Rytha Mobile App (Native Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a fully native mobile application for **Namma Rytha — AI Smart Farming**, built using React Native and Expo (managed workflow).
 
-## Get started
+## 🚀 Getting Started
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Install Dependencies
+Navigate to the `mobile` directory and install the project dependencies:
 ```bash
-npm run reset-project
+cd mobile
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Run Locally
+Start the Expo Metro bundler:
+```bash
+npx expo start
+```
+- Press **`a`** to open in the Android emulator.
+- Press **`i`** to open in the iOS simulator.
+- Press **`w`** to run as a web app.
+- Scan the QR code with the **Expo Go** app on your physical iOS/Android device to preview.
 
-### Other setup steps
+---
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## ⚙️ Backend Connection Config
+If you are running the backend server locally, you can tap the **Server Config** icon in the top-right corner of the Login page to configure your computer's local IP address (e.g. `http://192.168.1.5:3000`). By default, it connects to the production backend on Render.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📦 Building for Production (EAS Build)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Ensure you have the EAS CLI installed globally:
+```bash
+npm install -g eas-cli
+```
 
-## Join the community
+Log in to your Expo account:
+```bash
+eas login
+```
 
-Join our community of developers creating universal apps.
+Configure your project with EAS (only needed once):
+```bash
+eas project:init
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 1. Build for Android
+- **Build APK (For Local Device Installation / Testing):**
+  ```bash
+  eas build --platform android --profile preview
+  ```
+- **Build AAB (For Google Play Store Release):**
+  ```bash
+  eas build --platform android --profile production
+  ```
+
+### 2. Build for iOS
+- **Build IPA (For App Store Release / Ad-hoc Testing):**
+  ```bash
+  eas build --platform ios --profile production
+  ```
+- **Build for iOS Simulator (For local simulator testing):**
+  ```bash
+  eas build --platform ios --profile preview
+  ```
