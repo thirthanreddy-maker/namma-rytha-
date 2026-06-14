@@ -862,41 +862,168 @@
 
           <!-- SIGNUP PANEL -->
           <div class="form-panel" id="panelSignup">
+            <!-- Styles for OTP & Progress -->
+            <style>
+              .step-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                position: relative;
+                padding: 0 10px;
+              }
+              .step-line-bg {
+                position: absolute;
+                top: 15px;
+                left: 20px;
+                right: 20px;
+                height: 3px;
+                background: rgba(255,255,255,0.08);
+                z-index: 1;
+              }
+              .step-line-fill {
+                position: absolute;
+                top: 15px;
+                left: 20px;
+                width: 0%;
+                height: 3px;
+                background: var(--green-primary);
+                z-index: 2;
+                transition: width 0.4s ease;
+              }
+              .step-node {
+                position: relative;
+                z-index: 3;
+                width: 32px;
+                height: 32px;
+                background: #111811;
+                border: 2px solid rgba(255,255,255,0.2);
+                color: var(--text-muted);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 13px;
+                transition: all 0.4s ease;
+              }
+              .step-node.active {
+                border-color: var(--green-primary);
+                background: var(--green-primary);
+                color: #050a05;
+                box-shadow: 0 0 15px var(--green-glow);
+              }
+              .step-node.completed {
+                border-color: var(--green-primary);
+                background: #050a05;
+                color: var(--green-primary);
+              }
+              .pin-container {
+                display: flex;
+                justify-content: space-between;
+                gap: 8px;
+                margin: 20px 0;
+              }
+              .pin-input {
+                flex: 1;
+                height: 52px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(74, 222, 128, 0.15);
+                color: var(--text-primary);
+                border-radius: 10px;
+                font-size: 20px;
+                font-weight: 800;
+                text-align: center;
+                font-family: 'Space Grotesk', monospace;
+                transition: all 0.3s;
+              }
+              .pin-input:focus {
+                border-color: var(--green-primary);
+                box-shadow: 0 0 10px var(--green-glow);
+                background: rgba(74, 222, 128, 0.05);
+                outline: none;
+              }
+              .pref-card {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                cursor: pointer;
+                transition: all 0.3s;
+              }
+              .pref-card:hover {
+                border-color: rgba(74, 222, 128, 0.3);
+                background: rgba(74, 222, 128, 0.03);
+              }
+              .pref-card.active {
+                border-color: var(--green-primary);
+                background: rgba(74, 222, 128, 0.06);
+              }
+              .pref-checkbox {
+                width: 20px;
+                height: 20px;
+                border-radius: 6px;
+                border: 2px solid rgba(255,255,255,0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #050a05;
+                font-weight: bold;
+                transition: all 0.3s;
+              }
+              .pref-card.active .pref-checkbox {
+                border-color: var(--green-primary);
+                background: var(--green-primary);
+              }
+            </style>
+
             <div class="form-header">
-              <h2 class="form-title" data-i18n="join_namma">Join Namma Rytha 🌱</h2>
+              <h2 class="form-title">Join Namma Rytha 🌱</h2>
               <p class="form-subtitle">Create your account and start your smart farming journey.</p>
             </div>
 
             <div class="status-alert status-error" id="signupError"></div>
             <div class="status-alert status-success" id="signupSuccess"></div>
 
-            <!-- SIGNUP STEP 1: User Details -->
+            <!-- Visual Steps Header -->
+            <div class="step-container">
+              <div class="step-line-bg"></div>
+              <div class="step-line-fill" id="stepLineFill"></div>
+              <div class="step-node active" id="node1">1</div>
+              <div class="step-node" id="node2">2</div>
+              <div class="step-node" id="node3">3</div>
+              <div class="step-node" id="node4">4</div>
+            </div>
+
+            <!-- STEP 1: Account Info -->
             <div id="signupStep1">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                  <label class="form-label" data-i18n="first_name">First Name</label>
+                  <label class="form-label">First Name</label>
                   <input type="text" class="form-input" style="padding-left: 16px;" id="regFirst" placeholder="Raju">
                 </div>
                 <div class="form-group">
-                  <label class="form-label" data-i18n="last_name">Last Name</label>
+                  <label class="form-label">Last Name</label>
                   <input type="text" class="form-input" style="padding-left: 16px;" id="regLast" placeholder="Patil">
                 </div>
               </div>
-
               <div class="form-group">
-                <label class="form-label" data-i18n="email_address">Email Address</label>
+                <label class="form-label">Email Address</label>
                 <div class="input-wrap">
                   <span class="input-icon">📧</span>
                   <input type="email" class="form-input" id="regEmail" placeholder="raju@example.com">
                 </div>
               </div>
-
               <div class="form-group">
-                <label class="form-label" data-i18n="create_password">Create Password</label>
+                <label class="form-label">Create Password</label>
                 <div class="input-wrap">
                   <span class="input-icon">🔒</span>
-                  <input type="password" class="form-input" id="regPass" placeholder="Min 6 characters"
-                    oninput="updateStrength(this.value)">
+                  <input type="password" class="form-input" id="regPass" placeholder="Min 6 characters" oninput="updateStrength(this.value)">
                 </div>
                 <div class="strength-meter">
                   <div class="strength-dot" id="dot1"></div>
@@ -905,50 +1032,161 @@
                   <div class="strength-dot" id="dot4"></div>
                 </div>
               </div>
-
-              <button class="btn-submit" id="btnSignup" onclick="handleSignup()" data-i18n="create_account">
-                🌱 Create Account
+              <button class="btn-submit" onclick="goToStep2()">
+                Next: Contact Info ➡️
               </button>
-
-              <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;">
-                By signing up, you agree to our <a href="#"
-                  style="color: var(--green-primary); text-decoration: none;">Terms & Privacy</a>.
-              </p>
             </div>
 
-            <!-- SIGNUP STEP 2: OTP Verification -->
+            <!-- STEP 2: Contact Info -->
             <div id="signupStep2" style="display: none;">
-              <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 72px; height: 72px; margin: 0 auto 16px; background: linear-gradient(135deg, rgba(74,222,128,0.15), rgba(22,163,74,0.1)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; animation: pulse-glow 2s ease-in-out infinite;">
-                  📩
-                </div>
-                <h3 style="color: var(--green-primary); margin: 0 0 8px; font-size: 18px; font-weight: 700;">Check Your Email</h3>
-                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin: 0;">We sent a 6-digit verification code to<br><strong id="signupOtpEmail" style="color: var(--text-secondary);"></strong></p>
-              </div>
-
               <div class="form-group">
-                <label class="form-label">Enter 6-Digit Verification Code</label>
+                <label class="form-label">Country Code</label>
                 <div class="input-wrap">
-                  <span class="input-icon">🔢</span>
-                  <input type="text" class="form-input" id="signupOTP" placeholder="000000" maxlength="6"
-                    style="letter-spacing: 8px; font-weight: 800; font-size: 22px; text-align: center; padding-left: 16px; font-family: 'Space Grotesk', monospace;"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                  <span class="input-icon">🏳️</span>
+                  <select class="form-input" id="regCountryCode" style="padding-left: 45px; background: var(--bg-dark); color: var(--text-primary);">
+                    <option value="+91">🇮🇳 India (+91)</option>
+                    <option value="+1">🇺🇸 USA (+1)</option>
+                    <option value="+44">🇬🇧 UK (+44)</option>
+                    <option value="+61">🇦🇺 Australia (+61)</option>
+                  </select>
                 </div>
               </div>
+              <div class="form-group">
+                <label class="form-label">Mobile Number</label>
+                <div class="input-wrap">
+                  <span class="input-icon">📱</span>
+                  <input type="text" class="form-input" id="regPhone" placeholder="9876543210" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                </div>
+              </div>
+              <button class="btn-submit" id="btnRequestOtps" onclick="requestOtps()">
+                🚀 Generate Verification Codes
+              </button>
+              <a href="#" onclick="goBackToStep1(); return false;" style="display: block; text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: none;">
+                ← Back to Details
+              </a>
+            </div>
 
-              <button class="btn-submit" id="btnSignupVerify" onclick="handleSignupVerify()">
-                ✅ Verify & Create Account
+            <!-- STEP 3: Mobile OTP Verification -->
+            <div id="signupStep3" style="display: none;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 32px; margin-bottom: 10px;">📱</div>
+                <h3 style="color: var(--green-primary); margin: 0 0 6px; font-size: 16px;">Verify Mobile Number</h3>
+                <p style="color: var(--text-muted); font-size: 12px;">Enter the 6-digit code sent to <span id="displayMobile" style="color: var(--text-secondary); font-weight: bold;"></span></p>
+              </div>
+
+              <!-- Demo Mobile OTP -->
+              <div id="demoMobileOtpCard" style="background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.2); border-radius: 10px; padding: 10px; margin-bottom: 15px; text-align: center; font-size: 12px; display: none;">
+                💡 Demo Mode: Mobile OTP is <strong id="demoMobileOtp" style="color: var(--green-primary); font-size: 14px;"></strong>
+              </div>
+
+              <div class="pin-container" id="mobilePinContainer">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 0)" onkeydown="onPinKeydown(event, 'm-pin', 0)">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 1)" onkeydown="onPinKeydown(event, 'm-pin', 1)">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 2)" onkeydown="onPinKeydown(event, 'm-pin', 2)">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 3)" onkeydown="onPinKeydown(event, 'm-pin', 3)">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 4)" onkeydown="onPinKeydown(event, 'm-pin', 4)">
+                <input type="text" class="pin-input m-pin" maxlength="1" oninput="onPinInput(this, 'm-pin', 5)" onkeydown="onPinKeydown(event, 'm-pin', 5)">
+              </div>
+
+              <button class="btn-submit" onclick="verifyMobileOtp()">
+                Verify Mobile Code
               </button>
 
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                <a href="#" onclick="signupGoBack(); return false;" style="color: var(--text-muted); font-size: 13px; text-decoration: none; transition: color 0.3s;"
-                  onmouseover="this.style.color='var(--green-primary)'" onmouseout="this.style.color='var(--text-muted)'">
-                  ← Back to form
+                <a href="#" onclick="goBackToStep2(); return false;" style="color: var(--text-muted); font-size: 13px; text-decoration: none;">
+                  ← Back
                 </a>
-                <a href="#" id="resendOtpLink" onclick="handleResendOtp(); return false;" style="color: var(--green-primary); font-size: 13px; text-decoration: none; font-weight: 600;">
+                <span id="mResendTimer" style="color: var(--text-muted); font-size: 13px;"></span>
+                <a href="#" id="mResendBtn" onclick="requestOtps(); return false;" style="color: var(--green-primary); font-size: 13px; text-decoration: none; font-weight: 600; display: none;">
                   🔄 Resend Code
                 </a>
               </div>
+            </div>
+
+            <!-- STEP 4: Email OTP Verification -->
+            <div id="signupStep4" style="display: none;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 32px; margin-bottom: 10px;">✉️</div>
+                <h3 style="color: var(--green-primary); margin: 0 0 6px; font-size: 16px;">Verify Email Address</h3>
+                <p style="color: var(--text-muted); font-size: 12px;">Enter the 6-digit code sent to <span id="displayEmail" style="color: var(--text-secondary); font-weight: bold;"></span></p>
+              </div>
+
+              <!-- Demo Email OTP -->
+              <div id="demoEmailOtpCard" style="background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.2); border-radius: 10px; padding: 10px; margin-bottom: 15px; text-align: center; font-size: 12px; display: none;">
+                💡 Demo Mode: Email OTP is <strong id="demoEmailOtp" style="color: var(--green-primary); font-size: 14px;"></strong>
+              </div>
+
+              <div class="pin-container" id="emailPinContainer">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 0)" onkeydown="onPinKeydown(event, 'e-pin', 0)">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 1)" onkeydown="onPinKeydown(event, 'e-pin', 1)">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 2)" onkeydown="onPinKeydown(event, 'e-pin', 2)">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 3)" onkeydown="onPinKeydown(event, 'e-pin', 3)">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 4)" onkeydown="onPinKeydown(event, 'e-pin', 4)">
+                <input type="text" class="pin-input e-pin" maxlength="1" oninput="onPinInput(this, 'e-pin', 5)" onkeydown="onPinKeydown(event, 'e-pin', 5)">
+              </div>
+
+              <button class="btn-submit" onclick="verifyAndCreateAccount()">
+                Verify Email & Complete Registration
+              </button>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <a href="#" onclick="goBackToStep3(); return false;" style="color: var(--text-muted); font-size: 13px; text-decoration: none;">
+                  ← Back
+                </a>
+                <span id="eResendTimer" style="color: var(--text-muted); font-size: 13px;"></span>
+                <a href="#" id="eResendBtn" onclick="requestOtps(); return false;" style="color: var(--green-primary); font-size: 13px; text-decoration: none; font-weight: 600; display: none;">
+                  🔄 Resend Code
+                </a>
+              </div>
+            </div>
+
+            <!-- SUCCESS PANEL / PREFERENCES -->
+            <div id="signupSuccessPanel" style="display: none;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 40px; margin-bottom: 12px; animation: bounce 1.5s ease infinite;">🎉</div>
+                <h3 style="color: var(--green-primary); margin: 0 0 8px; font-size: 18px; font-weight: bold;">Registration Successful!</h3>
+                <div id="personalizedWelcomeCard" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(74,222,128,0.2); border-radius: 12px; padding: 15px; margin: 15px 0; text-align: left; font-size: 13px; line-height: 1.5; color: var(--text-primary);">
+                  Welcome to Namma Rytha! Loading welcome message...
+                </div>
+              </div>
+
+              <div style="margin-bottom: 20px;">
+                <label class="form-label" style="margin-bottom: 10px;">Select alert delivery channels:</label>
+                <div class="pref-card active" onclick="togglePrefCard(this, 'email')">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:18px;">✉️</span>
+                    <div>
+                      <div style="font-size:13px; font-weight:600;">Email Notifications</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Get alerts sent to your inbox</div>
+                    </div>
+                  </div>
+                  <div class="pref-checkbox">✓</div>
+                </div>
+                <div class="pref-card active" onclick="togglePrefCard(this, 'sms')">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:18px;">💬</span>
+                    <div>
+                      <div style="font-size:13px; font-weight:600;">SMS Alerts</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Receive alerts on your mobile</div>
+                    </div>
+                  </div>
+                  <div class="pref-checkbox">✓</div>
+                </div>
+                <div class="pref-card active" onclick="togglePrefCard(this, 'push')">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:18px;">🔔</span>
+                    <div>
+                      <div style="font-size:13px; font-weight:600;">App Push Notifications</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Show popup alerts in app</div>
+                    </div>
+                  </div>
+                  <div class="pref-checkbox">✓</div>
+                </div>
+              </div>
+
+              <button class="btn-submit" onclick="enterDashboard()">
+                🌾 Enter Namma Rytha Dashboard
+              </button>
             </div>
           </div>
 
@@ -1160,72 +1398,241 @@
       }
     }
 
-    async function handleSignup() {
+    let signupEmailOtp = '';
+    let signupMobileOtp = '';
+    let mResendCooldown = 0, eResendCooldown = 0;
+    let mResendTimer = null, eResendTimer = null;
+    let finalUserData = null;
+
+    function updateStepProgress(step) {
+      const fill = document.getElementById('stepLineFill');
+      if (step === 1) fill.style.width = '0%';
+      if (step === 2) fill.style.width = '33%';
+      if (step === 3) fill.style.width = '66%';
+      if (step === 4) fill.style.width = '100%';
+
+      for (let i = 1; i <= 4; i++) {
+        const node = document.getElementById('node' + i);
+        if (!node) continue;
+        if (i < step) {
+          node.className = 'step-node completed';
+          node.innerHTML = '✓';
+        } else if (i === step) {
+          node.className = 'step-node active';
+          node.innerHTML = i;
+        } else {
+          node.className = 'step-node';
+          node.innerHTML = i;
+        }
+      }
+    }
+
+    function goToStep2() {
       clearAlerts();
       const first = document.getElementById('regFirst').value.trim();
       const last = document.getElementById('regLast').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPass').value.trim();
-      const btn = document.getElementById('btnSignup');
 
       if (!first || !last || !email || !pass) return showAlert('signupError', 'All fields are required.');
       if (pass.length < 6) return showAlert('signupError', 'Password must be at least 6 characters.');
 
+      document.getElementById('signupStep1').style.display = 'none';
+      document.getElementById('signupStep2').style.display = 'block';
+      updateStepProgress(2);
+    }
+
+    function goBackToStep1() {
+      clearAlerts();
+      document.getElementById('signupStep2').style.display = 'none';
+      document.getElementById('signupStep1').style.display = 'block';
+      updateStepProgress(1);
+    }
+
+    async function requestOtps() {
+      clearAlerts();
+      const first = document.getElementById('regFirst').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const countryCode = document.getElementById('regCountryCode').value;
+      const phoneNum = document.getElementById('regPhone').value.trim();
+      const btn = document.getElementById('btnRequestOtps');
+
+      if (!phoneNum || phoneNum.length !== 10) {
+        return showAlert('signupError', 'Please enter a valid 10-digit mobile number.');
+      }
+
+      const fullPhone = countryCode + ' ' + phoneNum;
       const originalText = btn.innerHTML;
-      btn.innerHTML = '<div class="loading-spinner"></div> Sending verification code...';
+      btn.innerHTML = '<div class="loading-spinner"></div> Requesting OTPs...';
       btn.disabled = true;
 
       try {
         const res = await fetch(`${API_URL}/signup/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, firstName: first })
+          body: JSON.stringify({ email, phone: fullPhone, firstName: first })
         });
 
         const data = await res.json();
 
         if (res.ok) {
-          // Show OTP step
-          document.getElementById('signupStep1').style.display = 'none';
-          document.getElementById('signupStep2').style.display = 'block';
-          document.getElementById('signupOtpEmail').textContent = email;
-          document.getElementById('signupOTP').value = '';
-          document.getElementById('signupOTP').focus();
+          document.getElementById('displayMobile').textContent = fullPhone;
+          document.getElementById('displayEmail').textContent = email;
 
-          if (data.otp) {
-            // Demo mode — show OTP to user
-            showAlert('signupSuccess', `✅ Demo Mode: Your verification code is ${data.otp}`, false);
-            document.getElementById('signupOTP').value = data.otp;
-          } else {
-            showAlert('signupSuccess', '✅ Verification code sent to your email! Check your inbox.', false);
+          // Cache codes for demo mode display
+          signupEmailOtp = data.emailOtp || '';
+          signupMobileOtp = data.mobileOtp || '';
+
+          if (signupMobileOtp) {
+            document.getElementById('demoMobileOtp').textContent = signupMobileOtp;
+            document.getElementById('demoMobileOtpCard').style.display = 'block';
           }
+          if (signupEmailOtp) {
+            document.getElementById('demoEmailOtp').textContent = signupEmailOtp;
+            document.getElementById('demoEmailOtpCard').style.display = 'block';
+          }
+
+          // Transition to Step 3 (Mobile OTP)
+          document.getElementById('signupStep2').style.display = 'none';
+          document.getElementById('signupStep3').style.display = 'block';
+          updateStepProgress(3);
+
+          // Focus first PIN input
+          setTimeout(() => {
+            const firstInput = document.querySelector('.m-pin');
+            if (firstInput) firstInput.focus();
+          }, 100);
+
+          startCooldownTimers();
         } else {
-          showAlert('signupError', data.error || 'Failed to send verification code.');
+          showAlert('signupError', data.error || 'Failed to request verification codes.');
           btn.innerHTML = originalText;
           btn.disabled = false;
         }
       } catch (err) {
-        showAlert('signupError', 'Server error. Please try again later.');
+        showAlert('signupError', 'Server error. Please ensure the backend is running.');
         btn.innerHTML = originalText;
         btn.disabled = false;
       }
     }
 
-    async function handleSignupVerify() {
+    function startCooldownTimers() {
+      // Cooldown timer logic
+      mResendCooldown = 30;
+      eResendCooldown = 30;
+
+      const mTimer = document.getElementById('mResendTimer');
+      const mBtn = document.getElementById('mResendBtn');
+      const eTimer = document.getElementById('eResendTimer');
+      const eBtn = document.getElementById('eResendBtn');
+
+      mTimer.style.display = 'inline';
+      mBtn.style.display = 'none';
+      eTimer.style.display = 'inline';
+      eBtn.style.display = 'none';
+
+      clearInterval(mResendTimer);
+      mResendTimer = setInterval(() => {
+        mResendCooldown--;
+        mTimer.textContent = `Resend in ${mResendCooldown}s`;
+        if (mResendCooldown <= 0) {
+          clearInterval(mResendTimer);
+          mTimer.style.display = 'none';
+          mBtn.style.display = 'inline';
+        }
+      }, 1000);
+
+      clearInterval(eResendTimer);
+      eResendTimer = setInterval(() => {
+        eResendCooldown--;
+        eTimer.textContent = `Resend in ${eResendCooldown}s`;
+        if (eResendCooldown <= 0) {
+          clearInterval(eResendTimer);
+          eTimer.style.display = 'none';
+          eBtn.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    function goBackToStep2() {
+      clearAlerts();
+      document.getElementById('signupStep3').style.display = 'none';
+      document.getElementById('signupStep2').style.display = 'block';
+      updateStepProgress(2);
+    }
+
+    function onPinInput(input, prefix, index) {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value.length === 1 && index < 5) {
+        const nextInput = document.querySelectorAll(`.${prefix}`)[index + 1];
+        if (nextInput) nextInput.focus();
+      }
+    }
+
+    function onPinKeydown(event, prefix, index) {
+      if (event.key === 'Backspace' && event.target.value.length === 0 && index > 0) {
+        const prevInput = document.querySelectorAll(`.${prefix}`)[index - 1];
+        if (prevInput) {
+          prevInput.focus();
+          prevInput.value = '';
+        }
+      }
+    }
+
+    function verifyMobileOtp() {
+      clearAlerts();
+      const pins = document.querySelectorAll('.m-pin');
+      let code = '';
+      pins.forEach(p => code += p.value.trim());
+
+      if (code.length !== 6) {
+        return showAlert('signupError', 'Please enter the full 6-digit mobile verification code.');
+      }
+
+      // Demo verification check (matches cached OTP code)
+      if (signupMobileOtp && code !== signupMobileOtp) {
+        return showAlert('signupError', 'Invalid mobile verification code. Please try again.');
+      }
+
+      // Transition to Step 4 (Email Verification)
+      document.getElementById('signupStep3').style.display = 'none';
+      document.getElementById('signupStep4').style.display = 'block';
+
+      setTimeout(() => {
+        const firstInput = document.querySelector('.e-pin');
+        if (firstInput) firstInput.focus();
+      }, 100);
+    }
+
+    function goBackToStep3() {
+      clearAlerts();
+      document.getElementById('signupStep4').style.display = 'none';
+      document.getElementById('signupStep3').style.display = 'block';
+    }
+
+    async function verifyAndCreateAccount() {
       clearAlerts();
       const first = document.getElementById('regFirst').value.trim();
       const last = document.getElementById('regLast').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPass').value.trim();
-      const otp = document.getElementById('signupOTP').value.trim();
-      const btn = document.getElementById('btnSignupVerify');
+      const countryCode = document.getElementById('regCountryCode').value;
+      const phoneNum = document.getElementById('regPhone').value.trim();
+      
+      const mPins = document.querySelectorAll('.m-pin');
+      let mCode = '';
+      mPins.forEach(p => mCode += p.value.trim());
 
-      if (!otp || otp.length !== 6) return showAlert('signupError', 'Please enter the 6-digit verification code.');
+      const ePins = document.querySelectorAll('.e-pin');
+      let eCode = '';
+      ePins.forEach(p => eCode += p.value.trim());
 
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<div class="loading-spinner"></div> Verifying & creating account...';
-      btn.disabled = true;
+      if (eCode.length !== 6) {
+        return showAlert('signupError', 'Please enter the full 6-digit email verification code.');
+      }
 
+      const fullPhone = countryCode + ' ' + phoneNum;
+      
       try {
         const res = await fetch(`${API_URL}/signup`, {
           method: 'POST',
@@ -1235,98 +1642,88 @@
             lastName: last,
             email,
             password: pass,
-            otp,
-            location: 'Nashik, MH',
-            area: '2.5',
-            crop: 'wheat',
-            phone: '9876543210'
+            location: 'Bangalore, KA',
+            area: '3.0',
+            crop: 'rice',
+            phone: fullPhone,
+            emailOtp: eCode,
+            mobileOtp: mCode
           })
         });
 
         const data = await res.json();
 
         if (res.ok) {
-          showAlert('signupSuccess', '🎉 Account created successfully! Welcome aboard!', false);
-          setTimeout(() => {
-            localStorage.setItem('nr_user', JSON.stringify(data));
-            document.body.style.opacity = '0';
-            document.body.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => { window.location.href = 'index.html'; }, 400);
-          }, 1200);
+          finalUserData = data;
+          document.getElementById('signupStep4').style.display = 'none';
+          document.getElementById('signupSuccessPanel').style.display = 'block';
+          updateStepProgress(4);
+          
+          generateWelcomeMessage(first);
         } else {
-          showAlert('signupError', data.error || 'Signup failed.');
-          btn.innerHTML = originalText;
-          btn.disabled = false;
+          showAlert('signupError', data.error || 'Verification failed.');
         }
       } catch (err) {
-        showAlert('signupError', 'Server error. Please try again later.');
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        showAlert('signupError', 'Server error during verification. Please try again.');
       }
     }
 
-    let resendCooldown = 0;
-    let resendTimer = null;
+    async function generateWelcomeMessage(firstName) {
+      const welcomeCard = document.getElementById('personalizedWelcomeCard');
+      const key = localStorage.getItem('nr_gemini_key') || 'AIzaSyDemo_replace_with_your_key';
 
-    async function handleResendOtp() {
-      if (resendCooldown > 0) return;
-      clearAlerts();
-
-      const email = document.getElementById('regEmail').value.trim();
-      const first = document.getElementById('regFirst').value.trim();
-      const link = document.getElementById('resendOtpLink');
-
-      link.style.opacity = '0.5';
-      link.style.pointerEvents = 'none';
+      if (!key || key.includes('Demo')) {
+        welcomeCard.innerHTML = `🌾 <strong>Welcome to Namma Rytha, ${firstName}!</strong><br><br>Your smart farming account is verified and ready. Tap below to access your personalized dashboard for soil sensors, weather intelligence, and advisory engines. Let's make farming smarter together!`;
+        return;
+      }
 
       try {
-        const res = await fetch(`${API_URL}/signup/send-otp`, {
+        const prompt = `Write a personalized welcome message for an Indian farmer named ${firstName} who has just verified their account on the smart farming platform "Namma Rytha". Tell them they successfully verified both their Mobile and Email via OTP. Keep it warm, inspiring, and concise (under 50 words). Use emojis.`;
+
+        const body = {
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        };
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, firstName: first })
+          body: JSON.stringify(body)
         });
 
-        const data = await res.json();
-
         if (res.ok) {
-          if (data.otp) {
-            showAlert('signupSuccess', `✅ New code generated: ${data.otp}`, false);
-            document.getElementById('signupOTP').value = data.otp;
-          } else {
-            showAlert('signupSuccess', '✅ New verification code sent to your email!', false);
-          }
-
-          // Start 30-second cooldown
-          resendCooldown = 30;
-          resendTimer = setInterval(() => {
-            resendCooldown--;
-            link.textContent = `🔄 Resend in ${resendCooldown}s`;
-            if (resendCooldown <= 0) {
-              clearInterval(resendTimer);
-              link.textContent = '🔄 Resend Code';
-              link.style.opacity = '1';
-              link.style.pointerEvents = 'auto';
-            }
-          }, 1000);
+          const geminiData = await res.json();
+          const text = geminiData.candidates[0].content.parts[0].text;
+          welcomeCard.innerHTML = text.replace(/\n/g, '<br>');
         } else {
-          showAlert('signupError', data.error || 'Failed to resend code.');
-          link.style.opacity = '1';
-          link.style.pointerEvents = 'auto';
+          throw new Error('Gemini call failed');
         }
-      } catch (err) {
-        showAlert('signupError', 'Server error. Please try again.');
-        link.style.opacity = '1';
-        link.style.pointerEvents = 'auto';
+      } catch {
+        welcomeCard.innerHTML = `🌾 <strong>Welcome to Namma Rytha, ${firstName}!</strong><br><br>Your smart farming account is verified and ready. Tap below to access your personalized dashboard for soil sensors, weather intelligence, and advisory engines. Let's make farming smarter together!`;
       }
     }
 
-    function signupGoBack() {
-      clearAlerts();
-      document.getElementById('signupStep2').style.display = 'none';
-      document.getElementById('signupStep1').style.display = 'block';
-      const btn = document.getElementById('btnSignup');
-      btn.innerHTML = '🌱 Create Account';
-      btn.disabled = false;
+    function togglePrefCard(card, channel) {
+      card.classList.toggle('active');
+    }
+
+    function enterDashboard() {
+      if (!finalUserData) return;
+
+      const channels = [];
+      const cards = document.querySelectorAll('.pref-card');
+      if (cards[0].classList.contains('active')) channels.push('email');
+      if (cards[1].classList.contains('active')) channels.push('sms');
+      if (cards[2].classList.contains('active')) channels.push('push');
+
+      localStorage.setItem('nr_notification_channels', JSON.stringify(channels));
+      localStorage.setItem('nr_user', JSON.stringify(finalUserData));
+
+      // Fade out and enter dashboard
+      document.body.style.opacity = '0';
+      document.body.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => { window.location.href = 'index.html'; }, 400);
     }
 
     function demoAutoLogin() {

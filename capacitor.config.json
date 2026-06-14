@@ -1,5 +1,5 @@
 {
   "appId": "com.nammarytha.app",
   "appName": "NammaRytha",
-  "webDir": "www"
+  "webDir": "dist"
 }

@@ -3587,6 +3587,179 @@ function renderSettings() {
         </div>
       </div>
     `;
+  } else if (state.activeSettingsTab === 'alerts') {
+    const rawChannels = localStorage.getItem('nr_notification_channels');
+    const channels = rawChannels ? JSON.parse(rawChannels) : ['email', 'sms', 'push'];
+    
+    const logs = JSON.parse(localStorage.getItem('nr_notification_logs') || '[]');
+    let logHtml = '';
+    if (logs.length === 0) {
+      logHtml = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding: 20px 0;">No notification history. Use triggers below to send test alerts!</div>';
+    } else {
+      logs.forEach(log => {
+        logHtml += `
+          <div style="border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom:8px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted);">
+              <span>⏱️ ${log.timestamp} • Type: <strong>${log.event}</strong></span>
+              <span style="background:rgba(74,222,128,0.1); color:var(--green-primary); padding:2px 6px; border-radius:6px; font-size:9px; font-weight:bold;">${log.channels.join(', ').toUpperCase()}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-primary); margin-top:4px; line-height:1.4">${log.msg}</div>
+          </div>
+        `;
+      });
+    }
+
+    tabContent = `
+      <style>
+        .pref-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .pref-card:hover {
+          border-color: rgba(74, 222, 128, 0.3);
+          background: rgba(74, 222, 128, 0.03);
+        }
+        .pref-card.active {
+          border-color: var(--green-primary);
+          background: rgba(74, 222, 128, 0.06);
+        }
+        .pref-checkbox {
+          width: 20px;
+          height: 20px;
+          border-radius: 6px;
+          border: 2px solid rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          color: #050a05;
+          font-weight: bold;
+          transition: all 0.3s;
+        }
+        .pref-card.active .pref-checkbox {
+          border-color: var(--green-primary);
+          background: var(--green-primary);
+        }
+        .trigger-btn {
+          width: 100%;
+          text-align: left;
+          justify-content: flex-start;
+          height: 44px;
+          padding: 0 16px;
+          margin-bottom: 8px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          color: var(--text-primary);
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          transition: all 0.3s;
+        }
+        .trigger-btn:hover {
+          border-color: var(--green-primary);
+          background: rgba(74, 222, 128, 0.05);
+        }
+        .trigger-btn.danger-btn:hover {
+          border-color: #f87171;
+          background: rgba(248, 113, 113, 0.05);
+        }
+      </style>
+
+      <div class="settings-layout">
+        <!-- Notification Preferences -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon alerts">🔔</div>
+            <div>
+              <div class="section-title-text">Alert Delivery Preferences</div>
+              <div class="section-subtitle">Select preferred alert channels</div>
+            </div>
+          </div>
+          
+          <div style="padding: 22px;">
+            <div class="pref-card ${channels.includes('email') ? 'active' : ''}" onclick="toggleAlertChannel('email')">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:18px;">✉️</span>
+                <div>
+                  <div style="font-size:13px; font-weight:600;">Email Alerts</div>
+                  <div style="font-size:11px; color:var(--text-muted);">Receive farm telemetry via email inbox</div>
+                </div>
+              </div>
+              <div class="pref-checkbox">${channels.includes('email') ? '✓' : ''}</div>
+            </div>
+            
+            <div class="pref-card ${channels.includes('sms') ? 'active' : ''}" onclick="toggleAlertChannel('sms')">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:18px;">💬</span>
+                <div>
+                  <div style="font-size:13px; font-weight:600;">SMS Notifications</div>
+                  <div style="font-size:11px; color:var(--text-muted);">Get instant mobile text alerts</div>
+                </div>
+              </div>
+              <div class="pref-checkbox">${channels.includes('sms') ? '✓' : ''}</div>
+            </div>
+            
+            <div class="pref-card ${channels.includes('push') ? 'active' : ''}" onclick="toggleAlertChannel('push')">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:18px;">🔔</span>
+                <div>
+                  <div style="font-size:13px; font-weight:600;">App Push Notifications</div>
+                  <div style="font-size:11px; color:var(--text-muted);">Show popup notification toasts inside app</div>
+                </div>
+              </div>
+              <div class="pref-checkbox">${channels.includes('push') ? '✓' : ''}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Event Triggers -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="section-icon appearance">⚡</div>
+            <div>
+              <div class="section-title-text">Event Triggers</div>
+              <div class="section-subtitle">Simulate activity to fire alerts</div>
+            </div>
+          </div>
+          
+          <div style="padding: 22px;">
+            <button class="trigger-btn" id="btnTriggerLogin" onclick="triggerNotificationEvent('Login')">🔓 Simulate User Login</button>
+            <button class="trigger-btn" id="btnTriggerPassword" onclick="triggerNotificationEvent('Password Change')">🔑 Simulate Password Update</button>
+            <button class="trigger-btn" id="btnTriggerPayment" onclick="triggerNotificationEvent('Payment')">💳 Simulate Order Payment</button>
+            <button class="trigger-btn" id="btnTriggerShipment" onclick="triggerNotificationEvent('Shipment')">🚚 Simulate Product Shipment</button>
+            <button class="trigger-btn danger-btn" id="btnTriggerSuspicious" onclick="triggerNotificationEvent('Suspicious Activity')" style="color:#f87171;">⚠️ Simulate Suspicious Access</button>
+          </div>
+        </div>
+
+        <!-- Event Logs -->
+        <div class="settings-section" style="grid-column: span 2;">
+          <div class="settings-section-header">
+            <div class="section-icon reports">📜</div>
+            <div>
+              <div class="section-title-text">Notification Logs</div>
+              <div class="section-subtitle">Historical registry of sent alerts</div>
+            </div>
+          </div>
+          <div style="padding: 22px;">
+            <div class="event-log-container" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); padding: 12px; display:flex; flex-direction:column; gap:8px;">
+              ${logHtml}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   } else {
     tabContent = `
       <div class="settings-layout">
@@ -3720,12 +3893,107 @@ function renderSettings() {
     <div class="settings-tabs">
       <button class="settings-tab-btn ${state.activeSettingsTab === 'profile' ? 'active' : ''}" onclick="state.activeSettingsTab = 'profile'; renderSettings();">👨‍🌾 Farmer Profile</button>
       <button class="settings-tab-btn ${state.activeSettingsTab === 'preferences' ? 'active' : ''}" onclick="state.activeSettingsTab = 'preferences'; renderSettings();">🎨 App Preferences</button>
+      <button class="settings-tab-btn ${state.activeSettingsTab === 'alerts' ? 'active' : ''}" onclick="state.activeSettingsTab = 'alerts'; renderSettings();">🔔 Alerts & Logs</button>
       <button class="settings-tab-btn ${state.activeSettingsTab === 'system' ? 'active' : ''}" onclick="state.activeSettingsTab = 'system'; renderSettings();">⚙️ System & Account</button>
     </div>
 
     <!-- Tab Active Workspaces -->
     ${tabContent}
   `;
+}
+
+function toggleAlertChannel(channel) {
+  const rawChannels = localStorage.getItem('nr_notification_channels');
+  let channels = rawChannels ? JSON.parse(rawChannels) : ['email', 'sms', 'push'];
+  
+  if (channels.includes(channel)) {
+    channels = channels.filter(c => c !== channel);
+  } else {
+    channels.push(channel);
+  }
+  
+  localStorage.setItem('nr_notification_channels', JSON.stringify(channels));
+  renderSettings();
+  showToast('⚙️', `Preference for ${channel} updated.`);
+}
+
+async function triggerNotificationEvent(eventType) {
+  const rawChannels = localStorage.getItem('nr_notification_channels');
+  const channels = rawChannels ? JSON.parse(rawChannels) : ['email', 'sms', 'push'];
+  
+  if (channels.length === 0) {
+    showToast('⚠️', 'Please select at least one delivery channel first.');
+    return;
+  }
+  
+  const triggerBtnId = {
+    'Login': 'btnTriggerLogin',
+    'Password Change': 'btnTriggerPassword',
+    'Payment': 'btnTriggerPayment',
+    'Shipment': 'btnTriggerShipment',
+    'Suspicious Activity': 'btnTriggerSuspicious'
+  }[eventType];
+  
+  const btn = document.getElementById(triggerBtnId);
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = '⏳ Simulating...';
+    btn.disabled = true;
+  }
+  
+  try {
+    const res = await fetch(`${CONFIG.API_BASE_URL}/api/notifications/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType,
+        userName: state.user.name || 'Farmer',
+        crop: state.user.crop || 'rice',
+        channels,
+        geminiKey: CONFIG.GEMINI_API_KEY
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok) {
+      // Show toast if push is enabled
+      if (channels.includes('push')) {
+        showToast(eventType === 'Suspicious Activity' ? '🚨' : '🔔', data.message);
+      } else {
+        showToast('✅', `Alert dispatched via ${channels.join(', ')}.`);
+      }
+      
+      // Append to logs
+      const logs = JSON.parse(localStorage.getItem('nr_notification_logs') || '[]');
+      logs.unshift({
+        timestamp: new Date().toLocaleTimeString(),
+        event: eventType,
+        msg: data.message,
+        channels: channels
+      });
+      
+      // Keep last 20 logs
+      if (logs.length > 20) logs.pop();
+      
+      localStorage.setItem('nr_notification_logs', JSON.stringify(logs));
+      
+      // Re-render setting tab
+      renderSettings();
+    } else {
+      showToast('❌', data.error || 'Failed to dispatch alert.');
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+  } catch (err) {
+    showToast('❌', 'Failed to communicate with notification center.');
+    if (btn) {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
 }
 
 function useDetectedCityForSettingsProfile() {

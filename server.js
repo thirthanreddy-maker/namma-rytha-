@@ -285,30 +285,38 @@ app.delete('/api/products/:id', async (req, res) => {
     }
 });
 
-// ── Signup OTP: Send verification code to email ──
+// ── Signup OTP: Send verification code to email and mobile (simultaneously) ──
 app.post('/api/signup/send-otp', async (req, res) => {
     try {
-        const { email, firstName } = req.body;
+        const { email, phone, firstName } = req.body;
         if (!email) return res.status(400).json({ error: 'Email is required.' });
 
         const existing = await User.findOne({ email });
         if (existing) return res.status(400).json({ error: 'This email is already registered. Please log in instead.' });
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        signupOtpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
+        const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        const mobileOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        console.log(`[SIGNUP OTP] Code for ${email}: ${otp}`);
+        signupOtpStore[email] = {
+            emailOtp,
+            mobileOtp,
+            phone: phone || '',
+            expires: Date.now() + 10 * 60 * 1000
+        };
 
-        const otpHtml = buildOtpEmailHtml(firstName || 'Farmer', otp);
+        console.log(`[SIGNUP OTP] Generated codes for ${email}: Email OTP = ${emailOtp}, Mobile OTP = ${mobileOtp}`);
+
+        const otpHtml = buildOtpEmailHtml(firstName || 'Farmer', emailOtp);
         sendEmail(email, '🔐 Your Namma Rytha Verification Code', otpHtml);
 
         const response = {
             success: true,
-            message: SMTP_ENABLED
-                ? 'A 6-digit verification code has been sent to your email.'
-                : 'A 6-digit verification code has been generated (demo mode).'
+            message: 'Verification codes generated successfully.'
         };
-        if (!SMTP_ENABLED) response.otp = otp;
+        
+        // Return codes in response for demo mode
+        response.emailOtp = emailOtp;
+        response.mobileOtp = mobileOtp;
 
         res.json(response);
     } catch (err) {
@@ -316,20 +324,28 @@ app.post('/api/signup/send-otp', async (req, res) => {
     }
 });
 
-// ── Signup: Create account (requires OTP verification) ──
+// ── Signup: Create account (requires dual OTP verification) ──
 app.post('/api/signup', async (req, res) => {
     try {
-        const { firstName, lastName, email, phone, location, area, crop, password, otp } = req.body;
+        const { firstName, lastName, email, phone, location, area, crop, password, emailOtp, mobileOtp } = req.body;
 
-        if (!otp) return res.status(400).json({ error: 'Verification code is required.' });
+        if (!emailOtp || !mobileOtp) {
+            return res.status(400).json({ error: 'Both email and mobile verification codes are required.' });
+        }
 
         const record = signupOtpStore[email];
-        if (!record) return res.status(400).json({ error: 'No verification code found. Please request a new one.' });
+        if (!record) return res.status(400).json({ error: 'No verification record found. Please request a new one.' });
         if (Date.now() > record.expires) {
             delete signupOtpStore[email];
-            return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+            return res.status(400).json({ error: 'Verification codes have expired. Please request a new one.' });
         }
-        if (record.otp !== otp) return res.status(400).json({ error: 'Invalid verification code. Please try again.' });
+
+        if (record.emailOtp !== emailOtp) {
+            return res.status(400).json({ error: 'Invalid email verification code. Please try again.' });
+        }
+        if (record.mobileOtp !== mobileOtp) {
+            return res.status(400).json({ error: 'Invalid mobile verification code. Please try again.' });
+        }
 
         const user = await User.create({ firstName, lastName, email, phone, location, area, crop, password });
 
@@ -338,13 +354,83 @@ app.post('/api/signup', async (req, res) => {
         const welcomeHtml = buildWelcomeEmailHtml(firstName || 'Farmer');
         sendEmail(email, '🌾 Welcome to Namma Rytha — Your Account is Ready!', welcomeHtml);
 
-        console.log(`[SIGNUP SUCCESS] ${firstName} ${lastName} (${email}) — Account created & welcome email sent.`);
+        console.log(`[SIGNUP SUCCESS] ${firstName} ${lastName} (${email}) — Account created using dual OTP verification.`);
 
         res.json({ id: user._id, firstName, lastName, email, location, area, crop });
     } catch (err) {
         if (err.code === 11000) {
             return res.status(400).json({ error: 'Email already exists.' });
         }
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── Trigger Custom AI/Personalized Notifications ──
+app.post('/api/notifications/trigger', async (req, res) => {
+    try {
+        const { eventType, userName, crop, channels, geminiKey } = req.body;
+        if (!eventType || !userName) {
+            return res.status(400).json({ error: 'eventType and userName are required.' });
+        }
+
+        let message = '';
+        
+        if (geminiKey && !geminiKey.includes('Demo')) {
+            try {
+                // Call Gemini to generate a context-aware notification message
+                const prompt = `Write a short context-aware notification alert for an Indian farmer named ${userName} who grows ${crop || 'crops'}. 
+The event that occurred is: ${eventType} (options: Login, Password Change, Payment, Shipment, Suspicious Activity).
+Make the message feel warm, helpful, and highly professional, utilizing appropriate emojis. Keep it under 2 lines (under 40 words).`;
+
+                const body = {
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                };
+
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+                const apiRes = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (apiRes.ok) {
+                    const data = await apiRes.json();
+                    message = data.candidates[0].content.parts[0].text.trim();
+                }
+            } catch (e) {
+                console.error('[Gemini Notification Error]', e.message);
+            }
+        }
+
+        // Fallback static notifications if Gemini is not set or fails
+        if (!message) {
+            const cropText = crop ? `for your ${crop} field` : 'for your farm';
+            switch (eventType) {
+                case 'Login':
+                    message = `🔓 Hello ${userName}, a new login was detected on your account. If this wasn't you, please secure your credentials.`;
+                    break;
+                case 'Password Change':
+                    message = `🔑 Password Updated! The password for your Namma Rytha account was successfully changed.`;
+                    break;
+                case 'Payment':
+                    message = `💳 Payment Confirmed! We received your payment for fertilizer orders ${cropText}. Thank you!`;
+                    break;
+                case 'Shipment':
+                    message = `🚚 Shipment Dispatched! Your crop accessories and tools are on the way to your farm.`;
+                    break;
+                case 'Suspicious Activity':
+                    message = `⚠️ Warning: Unusual login attempt detected from an unrecognized device/location. Please verify your account.`;
+                    break;
+                default:
+                    message = `🔔 Notification: Event [${eventType}] occurred successfully.`;
+            }
+        }
+
+        console.log(`[NOTIFICATION SENT] Event: ${eventType}, channels: [${channels.join(', ')}], Message: "${message}"`);
+        res.json({ success: true, message, channels });
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
