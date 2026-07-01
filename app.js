@@ -3275,32 +3275,46 @@ function showWishlist() {
 
 // ─── PROFILE UPDATE ──────────────────────────────────────────────────────────
 async function updateProfile() {
-  const firstName = document.getElementById('settingsFirstName')?.value || '';
-  const lastName = document.getElementById('settingsLastName')?.value || '';
-  const location = document.getElementById('settingsLocation')?.value || '';
-  const area = document.getElementById('settingsArea')?.value || '';
-  const crop = document.getElementById('settingsCrop')?.value || '';
-  const phone = document.getElementById('settingsPhone')?.value || '';
-  const avatar = state.user.avatar || '';
+  const firstName = document.getElementById('settingsFirstName')?.value?.trim() || '';
+  const lastName  = document.getElementById('settingsLastName')?.value?.trim()  || '';
+  const location  = document.getElementById('settingsLocation')?.value?.trim()  || '';
+  const area      = document.getElementById('settingsArea')?.value?.trim()      || '';
+  const crop      = document.getElementById('settingsCrop')?.value?.trim()      || '';
+  const phone     = document.getElementById('settingsPhone')?.value?.trim()     || '';
+  const avatar    = state.user.avatar || '';
 
+  // ── Step 1: Always save locally first so UI never fails ──
+  const updatedUser = {
+    ...state.user,
+    firstName, lastName, location, area, crop, phone, avatar,
+    name: `${firstName} ${lastName}`.trim() || state.user.name
+  };
+  state.user = updatedUser;
+  localStorage.setItem('nr_user', JSON.stringify(state.user));
+  showToast('✅', 'Profile updated successfully!');
+  updateDashboardUser();
+  renderSettings();
+
+  // ── Step 2: Try to sync to backend silently (if available) ──
+  if (!state.user.id) return; // guest / no account yet
   const data = { id: state.user.id, firstName, lastName, location, area, crop, phone, avatar };
-
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000); // 6s timeout
     const res = await fetch(`${CONFIG.API_BASE_URL}/api/user/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     const result = await res.json();
-    if (result.success) {
-      state.user = { ...state.user, ...data, name: `${firstName} ${lastName}` };
-      localStorage.setItem('nr_user', JSON.stringify(state.user));
-      showToast('✅', 'Profile updated successfully!');
-      updateDashboardUser();
-      renderSettings();
+    if (!result.success) {
+      console.warn('Backend sync notice:', result.error || 'Non-success response');
     }
   } catch (e) {
-    showToast('❌', 'Failed to update profile');
+    // Backend unreachable (sleeping on Render free tier, or offline) — local save already done
+    console.warn('Profile backend sync skipped (offline/timeout):', e.message);
   }
 }
 
