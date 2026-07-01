@@ -301,9 +301,12 @@ html[data-theme="aurora-borealis"] {
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { overflow-x: hidden; width: 100%; position: relative; }
+html {
+  background: var(--bg-dark);
+}
 body {
   font-family: 'Inter', sans-serif;
-  background: var(--bg-dark);
+  background: transparent;
   color: var(--text-primary);
   min-height: 100vh;
   display: flex;
