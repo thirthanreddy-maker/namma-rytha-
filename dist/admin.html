@@ -30,12 +30,41 @@
       font-family: 'Outfit', sans-serif;
     }
 
-    body {
+    html {
       background: var(--bg);
+    }
+    body {
+      background: transparent;
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
+    }
+
+    /* ── ADMIN BACKGROUND VIDEO ── */
+    .admin-bg-video-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .admin-bg-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.28;
+      filter: saturate(0.7) contrast(1.1) brightness(0.75);
+    }
+    .admin-bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(9,15,29,0.25) 0%, rgba(9,15,29,0.72) 100%);
+    }
+    /* Ensure all admin content sits above the video */
+    .sidebar, .main-content, .ambient-glow {
+      position: relative;
+      z-index: 1;
     }
 
     /* Ambient Glows */
@@ -631,6 +660,28 @@
   </style>
 </head>
 <body>
+
+  <!-- ADMIN BACKGROUND VIDEO -->
+  <div class="admin-bg-video-container">
+    <video class="admin-bg-video" id="adminBgVideo" autoplay loop muted playsinline>
+      <source src="assets/admin_background.webm" type="video/webm">
+    </video>
+    <div class="admin-bg-overlay"></div>
+  </div>
+  <script>
+    (function() {
+      const v = document.getElementById('adminBgVideo');
+      v.play().catch(function() {
+        const p = function() {
+          v.play().catch(function() {});
+          document.removeEventListener('click', p);
+          document.removeEventListener('touchstart', p);
+        };
+        document.addEventListener('click', p);
+        document.addEventListener('touchstart', p);
+      });
+    })();
+  </script>
 
   <div class="ambient-glow"></div>
 
