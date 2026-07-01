@@ -4566,3 +4566,138 @@ setTimeout(init3DTilt, 1000);
 
 // Initialize particles after a short delay
 setTimeout(initParticles, 1500);
+
+// ─── GLOBAL SEARCH ENGINE ─────────────────────────────────────────────────────
+const SEARCH_INDEX = [
+  // ── Pages / Navigation ──
+  { group: 'Pages', icon: '🏡', title: 'Dashboard', subtitle: 'Overview of farm stats, alerts & AI tips', page: 'dashboard', keywords: 'home overview summary stats farm' },
+  { group: 'Pages', icon: '💧', title: 'Irrigation Advisor', subtitle: 'AI-driven soil moisture & water management', page: 'irrigation', keywords: 'water drip irrigation soil moisture schedule' },
+  { group: 'Pages', icon: '🌿', title: 'Fertilizer Engine', subtitle: 'NPK recommendations & soil analysis', page: 'fertilizer', keywords: 'npk nitrogen phosphorus potassium fertilizer soil nutrients' },
+  { group: 'Pages', icon: '🌾', title: 'Crop Advisor', subtitle: 'AI crop recommendations & yield predictor', page: 'crop', keywords: 'crop advice recommend yield plant seeds' },
+  { group: 'Pages', icon: '🔬', title: 'Disease Detector', subtitle: 'Detect crop disease from symptoms', page: 'disease', keywords: 'disease pest infection symptoms cure treatment' },
+  { group: 'Pages', icon: '☁️', title: 'Weather Center', subtitle: 'Live weather, forecast & farming impact', page: 'weather', keywords: 'weather rain temperature forecast humidity wind' },
+  { group: 'Pages', icon: '📈', title: 'Market Prices', subtitle: 'Mandi rates, revenue planner & trends', page: 'market', keywords: 'mandi market price rates sell crop revenue profit' },
+  { group: 'Pages', icon: '🌍', title: 'Sustainability', subtitle: 'Eco-scores, carbon footprint & green tips', page: 'sustainability', keywords: 'carbon eco green environment sustainability score' },
+  { group: 'Pages', icon: '📦', title: 'Marketplace', subtitle: 'Tools, seeds & accessories for farmers', page: 'products', keywords: 'shop buy products tools seeds accessories marketplace' },
+  { group: 'Pages', icon: '💬', title: 'Feedback', subtitle: 'Rate your experience & send suggestions', page: 'feedback', keywords: 'feedback review rating suggestions complaint' },
+
+  // ── Crops ──
+  { group: 'Crops', icon: '🌾', title: 'Wheat', subtitle: 'Irrigation, fertilizer & disease info for wheat', page: 'crop', keywords: 'wheat gehu rabi crop winter' },
+  { group: 'Crops', icon: '🌽', title: 'Maize / Corn', subtitle: 'Crop advice for maize cultivation', page: 'crop', keywords: 'maize corn jowar kharif' },
+  { group: 'Crops', icon: '🍅', title: 'Tomato', subtitle: 'Tomato disease, irrigation & yield tips', page: 'crop', keywords: 'tomato vegetable tamatar disease irrigation' },
+  { group: 'Crops', icon: '🌶️', title: 'Chilli / Pepper', subtitle: 'Spice crop management advice', page: 'crop', keywords: 'chilli pepper mirchi spice crop' },
+  { group: 'Crops', icon: '🥜', title: 'Groundnut', subtitle: 'Oilseed crop recommendations', page: 'crop', keywords: 'groundnut peanut oilseed moongfali' },
+  { group: 'Crops', icon: '🌱', title: 'Rice / Paddy', subtitle: 'Paddy irrigation and fertilizer schedule', page: 'irrigation', keywords: 'rice paddy chawal kharif water flooding' },
+  { group: 'Crops', icon: '🫘', title: 'Soybean', subtitle: 'Protein crop care and disease management', page: 'crop', keywords: 'soybean soya legume protein' },
+  { group: 'Crops', icon: '🧅', title: 'Onion', subtitle: 'Onion cultivation and market prices', page: 'market', keywords: 'onion pyaz kanda market price bulb' },
+  { group: 'Crops', icon: '🍬', title: 'Sugarcane', subtitle: 'Long-duration crop scheduling', page: 'irrigation', keywords: 'sugarcane ganna sugar jaggery water' },
+  { group: 'Crops', icon: '🌻', title: 'Sunflower', subtitle: 'Oilseed sunflower crop tips', page: 'crop', keywords: 'sunflower surajmukhi oilseed crop' },
+
+  // ── Features ──
+  { group: 'Features', icon: '🤖', title: 'AI Recommendations', subtitle: 'Gemini-powered farm advice', page: 'dashboard', keywords: 'ai recommendation gemini bot smart advice' },
+  { group: 'Features', icon: '🌡️', title: 'Soil Analysis', subtitle: 'Enter NPK levels for advice', page: 'fertilizer', keywords: 'soil npk ph analysis test lab' },
+  { group: 'Features', icon: '📅', title: 'Disease Risk Calendar', subtitle: 'Monthly crop disease risk chart', page: 'disease', keywords: 'calendar disease risk monthly season' },
+  { group: 'Features', icon: '🗺️', title: 'Weather Map', subtitle: 'Interactive live weather map', page: 'weather', keywords: 'map weather location gps satellite' },
+  { group: 'Features', icon: '💰', title: 'Revenue Planner', subtitle: 'Calculate mandi profit from yield', page: 'market', keywords: 'revenue profit planner calculator mandi yield' },
+  { group: 'Features', icon: '⚡', title: 'Quick Actions', subtitle: 'Shortcut buttons for common tasks', page: 'dashboard', keywords: 'quick action shortcut refresh report alert' },
+  { group: 'Features', icon: '🏆', title: 'Achievements', subtitle: 'Unlock badges for farming milestones', page: 'sustainability', keywords: 'achievement badge milestone unlock reward' },
+  { group: 'Features', icon: '📄', title: 'Export Report', subtitle: 'Download your farm summary PDF', page: 'dashboard', keywords: 'export pdf report download summary print' },
+  { group: 'Features', icon: '📱', title: 'WhatsApp Report', subtitle: 'Share your farm report via WhatsApp', page: 'dashboard', keywords: 'whatsapp share send report mobile' },
+  { group: 'Features', icon: '📍', title: 'Location / GPS', subtitle: 'Set your farm location for weather', page: 'weather', keywords: 'location gps coordinates pin village district' },
+
+  // ── Alerts & Health ──
+  { group: 'Alerts', icon: '🚨', title: 'Water Stress Alert', subtitle: 'Soil moisture critically low', page: 'irrigation', keywords: 'water stress alert soil moisture low dry' },
+  { group: 'Alerts', icon: '⛅', title: 'Rain Alert', subtitle: 'Heavy rain forecast this week', page: 'weather', keywords: 'rain heavy alert forecast avoid spray' },
+  { group: 'Alerts', icon: '🌿', title: 'Fertilizer Reminder', subtitle: 'Time to apply urea top-dressing', page: 'fertilizer', keywords: 'fertilizer reminder urea nitrogen apply schedule' },
+];
+
+function highlightMatch(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+}
+
+function runGlobalSearch(query) {
+  const dropdown = document.getElementById('searchResultsDropdown');
+  const clearBtn = document.getElementById('searchClearBtn');
+  clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+  if (!query || query.trim().length < 1) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  const q = query.toLowerCase().trim();
+  const matches = SEARCH_INDEX.filter(item =>
+    item.title.toLowerCase().includes(q) ||
+    item.subtitle.toLowerCase().includes(q) ||
+    item.keywords.toLowerCase().includes(q)
+  ).slice(0, 12);
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = `<div class="search-no-results">🔍 No results for "<strong>${query}</strong>"</div>`;
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  // Group results
+  const groups = {};
+  matches.forEach(item => {
+    if (!groups[item.group]) groups[item.group] = [];
+    groups[item.group].push(item);
+  });
+
+  let html = '';
+  for (const [groupName, items] of Object.entries(groups)) {
+    html += `<div class="search-group-label">${groupName}</div>`;
+    items.forEach(item => {
+      html += `
+        <div class="search-result-item" onclick="searchGoTo('${item.page}')">
+          <span class="search-result-icon">${item.icon}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${highlightMatch(item.title, query)}</div>
+            <div class="search-result-subtitle">${highlightMatch(item.subtitle, query)}</div>
+          </div>
+          <span class="search-result-arrow">→</span>
+        </div>`;
+    });
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'block';
+}
+
+function searchGoTo(page) {
+  clearGlobalSearch();
+  showPage(page);
+}
+
+function clearGlobalSearch() {
+  const input = document.getElementById('globalSearchInput');
+  const dropdown = document.getElementById('searchResultsDropdown');
+  const clearBtn = document.getElementById('searchClearBtn');
+  input.value = '';
+  dropdown.style.display = 'none';
+  clearBtn.style.display = 'none';
+}
+
+// Close search when clicking outside
+document.addEventListener('click', function(e) {
+  const wrapper = document.getElementById('globalSearchWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    const dropdown = document.getElementById('searchResultsDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+  }
+});
+
+// Keyboard shortcut: Ctrl+K or Cmd+K to focus search
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const input = document.getElementById('globalSearchInput');
+    if (input) { input.focus(); input.select(); }
+  }
+  if (e.key === 'Escape') {
+    clearGlobalSearch();
+  }
+});

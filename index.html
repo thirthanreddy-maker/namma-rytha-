@@ -460,6 +460,15 @@
         <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()">☰</button>
         <h1 class="page-title" id="pageTitle" data-i18n="farm_dashboard_title">Farm Dashboard</h1>
         <div class="breadcrumb" id="breadcrumb" data-i18n="overview_today">Overview → Today</div>
+        <!-- GLOBAL SEARCH BAR -->
+        <div class="global-search-wrapper" id="globalSearchWrapper">
+          <div class="global-search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="globalSearchInput" placeholder="Search anything..." autocomplete="off" oninput="runGlobalSearch(this.value)" onfocus="runGlobalSearch(this.value)" />
+            <button class="search-clear-btn" id="searchClearBtn" onclick="clearGlobalSearch()" style="display:none">✕</button>
+          </div>
+          <div class="search-results-dropdown" id="searchResultsDropdown" style="display:none"></div>
+        </div>
       </div>
       <div class="topbar-right">
         <div id="google_translate_element"></div>
