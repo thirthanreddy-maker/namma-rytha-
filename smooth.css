@@ -494,15 +494,11 @@ html {
   to { opacity: 1; transform: translateX(0); }
 }
 
-body {
-  isolation: isolate;
-}
-
 /* ── BACKGROUND VIDEO ── */
 .bg-video-container {
   position: fixed;
   inset: 0;
-  z-index: -1; /* Rendered above body background, but below all other content */
+  z-index: 0; /* Rendered in front of parent's background color/images, but below z-index: 1+ elements */
   overflow: hidden;
   pointer-events: none;
 }

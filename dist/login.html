@@ -767,12 +767,12 @@
   <div id="google_translate_element"></div>
   <!-- BACKGROUND VIDEO -->
   <div class="bg-video-container">
-    <video class="bg-video" autoplay loop muted playsinline>
+    <video class="bg-video" autoplay loop muted playsinline id="login-bg-video-element">
       <source src="assets/background.mp4" type="video/mp4">
     </video>
     <script>
       (function() {
-        const v = document.currentScript.previousElementSibling;
+        const v = document.getElementById('login-bg-video-element');
         v.play().catch(function() {
           const p = function() {
             v.play().catch(function() {});
