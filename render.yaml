@@ -12,3 +12,5 @@ services:
         value: 18.20.0
       - key: GOOGLE_CLIENT_ID
         value: 166834385153-oqpgsnhkufrreqeskgor54q7j4tldtin.apps.googleusercontent.com
+      - key: MONGO_URI
+        sync: false   # Set this in the Render dashboard → Environment tab

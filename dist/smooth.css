@@ -494,10 +494,44 @@ html {
   to { opacity: 1; transform: translateX(0); }
 }
 
+body {
+  isolation: isolate;
+}
+
+/* ── BACKGROUND VIDEO ── */
+.bg-video-container {
+  position: fixed;
+  inset: 0;
+  z-index: -1; /* Rendered above body background, but below all other content */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42; /* Much higher visibility while maintaining readability */
+  filter: saturate(0.8) contrast(1.05) brightness(0.85);
+  transition: opacity 1.2s ease-in-out;
+  will-change: opacity;
+}
+
+.bg-video-overlay {
+  position: absolute;
+  inset: 0;
+  /* Premium radial vignetting to enhance center focus and guarantee absolute text legibility */
+  background: radial-gradient(circle at 50% 50%, rgba(2, 6, 2, 0.1) 0%, rgba(2, 6, 2, 0.65) 100%);
+  pointer-events: none;
+}
+
 /* ── REDUCED MOTION ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  .bg-video-container {
+    display: none !important;
   }
 }

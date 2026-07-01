@@ -11,8 +11,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3" />
-  <link rel="stylesheet" href="smooth.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="smooth.css?v=5" />
   <link rel="manifest" href="manifest.json" />
   <script>
     (function () {
@@ -348,6 +348,29 @@
     </div>
   </div>
 
+  <!-- BACKGROUND VIDEO -->
+  <div class="bg-video-container">
+    <video class="bg-video" autoplay loop muted playsinline>
+      <source src="assets/dashboard_background.mp4" type="video/mp4">
+      <source src="assets/background.mp4" type="video/mp4">
+    </video>
+    <script>
+      (function() {
+        const v = document.currentScript.previousElementSibling;
+        v.play().catch(function() {
+          const p = function() {
+            v.play().catch(function() {});
+            document.removeEventListener('click', p);
+            document.removeEventListener('touchstart', p);
+          };
+          document.addEventListener('click', p);
+          document.addEventListener('touchstart', p);
+        });
+      })();
+    </script>
+    <div class="bg-video-overlay"></div>
+  </div>
+
   <div class="ambient-bg">
     <div class="orb orb1"></div>
     <div class="orb orb2"></div>
@@ -407,7 +430,7 @@
     </nav>
     <div class="sidebar-footer">
       <div class="farmer-profile" onclick="showSettingsProfile()">
-        <div class="farmer-avatar">👨‍🌾</div>
+        <div class="farmer-avatar" id="sidebarAvatar">👨‍🌾</div>
         <div class="farmer-info">
           <div class="farmer-name" id="farmerName">user</div>
           <div class="farmer-loc" id="farmerLoc">📍 Bengaluru, Karnataka</div>

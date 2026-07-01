@@ -6,7 +6,12 @@ const feedbackSchema = new mongoose.Schema({
     email: { type: String, default: '' },
     rating: { type: Number, default: 0 },
     message: { type: String, default: '' },
-    timestamp: { type: Date, default: Date.now }
+    timestamp: { type: Date, default: Date.now },
+    replies: [{
+        replyMessage: { type: String, required: true },
+        adminUser: { type: String, default: 'System Admin' },
+        timestamp: { type: Date, default: Date.now }
+    }]
 }, { timestamps: false });
 
 module.exports = mongoose.model('Feedback', feedbackSchema);

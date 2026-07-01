@@ -10,7 +10,7 @@ const CONFIG = {
       ? 'http://localhost:3000'
       : 'https://namma-rytha-backend.onrender.com',
   // Free key from https://aistudio.google.com/app/apikey
-  GEMINI_API_KEY: localStorage.getItem('nr_gemini_key') || 'AIzaSyDemo_replace_with_your_key',
+  GEMINI_API_KEY: localStorage.getItem('nr_gemini_key') || 'DEMO_KEY',
   GEMINI_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
   USE_AI: true   // set false to use offline smart responses only
 };
@@ -323,7 +323,7 @@ function showPage(id) {
 
   if (id === 'sustainability') animateCounters();
   if (id === 'weather') fetchWeather();
-  if (id === 'market') { renderMarketTable(); }
+  if (id === 'market') { autoInitMarketPrices(); }
   if (id === 'disease') renderRiskCalendar();
   if (id === 'dashboard') generateRecommendations();
   if (id === 'products') loadProducts();
@@ -1330,6 +1330,92 @@ async function fetchRealTimeMarketPrices() {
       if (updateTimeEl) updateTimeEl.textContent = 'Offline Demo';
     }
   }
+}
+
+// ─── MARKET PAGE: ALIAS + AUTO-DETECT HELPERS ───────────────────────────────
+
+/**
+ * Called when the market page opens. Pre-fills the city input from the user's
+ * saved location profile and immediately fetches nearest mandi prices.
+ */
+function autoInitMarketPrices() {
+  const cityInput = document.getElementById('marketCityInput');
+  if (cityInput) {
+    // Only pre-fill if field is empty (don't overwrite a manual entry on tab switch)
+    if (!cityInput.value.trim()) {
+      // Extract the first part of the user's stored location (e.g. "Raichur, Karnataka" → "Raichur")
+      const profileLocation = state.user && state.user.location ? state.user.location : '';
+      const city = profileLocation.split(',')[0].trim();
+      if (city) {
+        cityInput.value = city;
+        showToast('📍', `Showing mandi prices for ${city} (from your profile)`);
+      }
+    }
+  }
+  // If we already have data, render it immediately; then fetch fresh data in background
+  if (realTimeMarketData.length > 0) renderMarketTable();
+  fetchRealTimeMarketPrices();
+}
+
+/** Alias used by the HTML refresh button */
+function refreshMarketPrices() {
+  fetchRealTimeMarketPrices();
+}
+
+/**
+ * Auto-detect the user's current city via GPS → IP-geolocation fallback,
+ * then fetch mandi prices for that city.
+ */
+async function useDetectedCityForMarket() {
+  const cityInput = document.getElementById('marketCityInput');
+  const btn = document.getElementById('marketAutoDetectBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '📡 Detecting...'; }
+  showToast('📡', 'Detecting your location for mandi prices...');
+
+  async function setMarketCity(city) {
+    if (cityInput) cityInput.value = city;
+    if (btn) { btn.disabled = false; btn.textContent = '📡 Use Auto-Detected'; }
+    showToast('📍', `Fetching mandi prices for ${city}...`);
+    await fetchRealTimeMarketPrices();
+  }
+
+  // Fallback: IP-based geolocation
+  async function fallbackToIP() {
+    const ipData = await ipGeolocate();
+    if (ipData) {
+      await setMarketCity(ipData.city.split(',')[0].trim());
+    } else {
+      // Last resort: use profile location
+      const profileLocation = state.user && state.user.location ? state.user.location : '';
+      const city = profileLocation.split(',')[0].trim() || 'Bengaluru';
+      showToast('ℹ️', `Could not detect GPS/IP. Using profile location: ${city}`);
+      await setMarketCity(city);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '📡 Use Auto-Detected'; }
+  }
+
+  if (!('geolocation' in navigator)) {
+    await fallbackToIP();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      try {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const cityLabel = await reverseGeocode(lat, lon);
+        await setMarketCity(cityLabel.split(',')[0].trim());
+      } catch (e) {
+        console.warn('GPS market detect failed, trying IP:', e);
+        await fallbackToIP();
+      }
+    },
+    async (err) => {
+      console.warn('GPS denied for market, trying IP:', err.message);
+      await fallbackToIP();
+    },
+    { timeout: 8000, enableHighAccuracy: true, maximumAge: 60000 }
+  );
 }
 
 const MSP_MAP = {
@@ -2499,20 +2585,119 @@ function createProductCard(p, isAI = false) {
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(icon, message) {
-  const container = document.getElementById('toastContainer');
+  let container = document.getElementById('toastContainer');
   if (!container) {
-    console.log(`Toast fallback: ${icon} ${message}`);
-    return;
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.position = 'fixed';
+    container.style.bottom = '110px';
+    container.style.right = '28px';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '10px';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
   }
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  toast.style.position = 'relative';
+  toast.style.bottom = 'auto';
+  toast.style.right = 'auto';
+  toast.style.margin = '0';
+  toast.style.pointerEvents = 'auto';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span> <span style="flex:1">${message}</span>`;
   container.appendChild(toast);
+  
+  // Trigger transition
   setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(50px)';
+    toast.classList.add('show');
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
     setTimeout(() => toast.remove(), 400);
   }, 4000);
+}
+
+// ─── REAL-TIME NOTIFICATIONS POLLING ──────────────────────────────────────────
+let _lastNotificationCheckTime = Date.now();
+
+function startRealTimeNotificationsPolling() {
+  if (!state.user || !state.user.email) {
+    // Retry in 3 seconds if user info is not loaded yet
+    setTimeout(startRealTimeNotificationsPolling, 3000);
+    return;
+  }
+
+  console.log('📡 Starting real-time notifications listener for:', state.user.email);
+  _lastNotificationCheckTime = Date.now();
+
+  setInterval(async () => {
+    try {
+      const res = await fetch(`${CONFIG.API_BASE_URL}/api/notifications`);
+      if (!res.ok) return;
+      const list = await res.json();
+      
+      const newAlerts = list
+        .filter(notif => {
+          // Verify recipient: matches user's email, or is empty (broadcast for all)
+          const isRecipient = !notif.recipientEmail || 
+                              notif.recipientEmail.toLowerCase() === state.user.email.toLowerCase() ||
+                              notif.userName.toLowerCase().includes('all');
+          
+          if (!isRecipient) return false;
+          
+          const notifTime = new Date(notif.timestamp).getTime();
+          return notifTime > _lastNotificationCheckTime;
+        })
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+      if (newAlerts.length > 0) {
+        newAlerts.forEach(alert => {
+          // 1. Display toast notification
+          showToast('🔔', alert.message);
+          
+          // 2. Append to Dashboard active alerts list
+          state.alerts = state.alerts || [];
+          state.alerts.unshift({
+            id: alert._id || 'notif-' + new Date(alert.timestamp).getTime(),
+            level: alert.eventType === 'Suspicious Activity' ? 'critical' : (alert.eventType === 'Weather Alert' ? 'warning' : 'info'),
+            icon: alert.eventType === 'Suspicious Activity' ? '🚨' : (alert.eventType === 'Weather Alert' ? '⛅' : '🌿'),
+            title: alert.eventType || 'System Alert',
+            desc: alert.message,
+            time: 'Just now'
+          });
+          
+          // Render alerts list on Dashboard
+          renderAlerts();
+          
+          // 3. Log locally in settings logs
+          const logs = JSON.parse(localStorage.getItem('nr_notification_logs') || '[]');
+          logs.unshift({
+            timestamp: new Date(alert.timestamp).toLocaleTimeString(),
+            event: alert.eventType || 'Alert',
+            msg: alert.message,
+            channels: alert.channels || ['push']
+          });
+          if (logs.length > 20) logs.pop();
+          localStorage.setItem('nr_notification_logs', JSON.stringify(logs));
+          
+          // Update last check time
+          const alertTime = new Date(alert.timestamp).getTime();
+          if (alertTime > _lastNotificationCheckTime) {
+            _lastNotificationCheckTime = alertTime;
+          }
+        });
+        
+        // Re-render settings page if user is currently viewing logs
+        if (state.currentPage === 'settings' && state.activeSettingsTab === 'alerts') {
+          renderSettings();
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to poll notifications:', err.message);
+    }
+  }, 5000);
 }
 
 // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
@@ -2597,6 +2782,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateDashboardForecast();
   loadFarmData();
   updateSustainabilityUI();
+  startRealTimeNotificationsPolling();
 
   // ── REAL-TIME DATA CHAIN ──────────────────────────────────────────────────
   // Step 1: Fetch live weather (also updates dashboard temp, rain, recommendations, alerts)
@@ -3097,8 +3283,9 @@ async function updateProfile() {
   const area = document.getElementById('settingsArea')?.value || '';
   const crop = document.getElementById('settingsCrop')?.value || '';
   const phone = document.getElementById('settingsPhone')?.value || '';
+  const avatar = state.user.avatar || '';
 
-  const data = { id: state.user.id, firstName, lastName, location, area, crop, phone };
+  const data = { id: state.user.id, firstName, lastName, location, area, crop, phone, avatar };
 
   try {
     const res = await fetch(`${CONFIG.API_BASE_URL}/api/user/update`, {
@@ -3124,6 +3311,52 @@ function updateDashboardUser() {
   const locEl = document.getElementById('farmerLoc');
   if (nameEl) nameEl.textContent = state.user.name || 'User';
   if (locEl) locEl.textContent = '📍 ' + (state.user.location || 'Bengaluru, Karnataka');
+  
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (avatarEl) {
+    if (state.user.avatar) {
+      avatarEl.innerHTML = `<img src="${state.user.avatar}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+    } else {
+      avatarEl.innerHTML = '👨‍🌾';
+    }
+  }
+}
+
+function triggerProfilePhotoUpload() {
+  document.getElementById('profilePhotoInput')?.click();
+}
+
+function handleProfilePhotoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('⚠️', 'Photo must be smaller than 2MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+    
+    // Update local state temporarily (saved to DB on Save)
+    state.user.avatar = base64Data;
+    
+    // Update settings preview container immediately
+    const avatarDisplay = document.getElementById('settingsProfileAvatar');
+    if (avatarDisplay) {
+      avatarDisplay.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+    }
+    
+    // Update sidebar avatar immediately
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar) {
+      sidebarAvatar.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+    }
+    
+    showToast('📸', 'Photo selected! Click Save Profile Changes to confirm.');
+  };
+  reader.readAsDataURL(file);
 }
 
 // ─── FEEDBACK SUBMISSION ──────────────────────────────────────────────────────
@@ -3303,11 +3536,18 @@ function renderSettings() {
     const area = state.user.area || '';
     const crop = state.user.crop || 'tomato';
 
+    const avatarDisplay = state.user.avatar 
+      ? `<img src="${state.user.avatar}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`
+      : initials;
+
     tabContent = `
       <div class="settings-layout">
         <!-- Profile Overview Card -->
         <div class="settings-profile-card" style="margin-bottom:0; flex-direction:column; justify-content:center; align-items:center; height:100%;">
-          <div class="profile-avatar" style="width:96px; height:96px; font-size:38px;">${initials}</div>
+          <div class="profile-avatar editable" id="settingsProfileAvatar" onclick="triggerProfilePhotoUpload()" style="width:96px; height:96px; font-size:38px; position:relative; overflow:hidden;" title="Click to upload profile photo">
+            ${avatarDisplay}
+          </div>
+          <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="handleProfilePhotoUpload(event)" />
           <div class="profile-info" style="text-align:center; margin-top:16px;">
             <div class="profile-name" style="font-size:22px;">${userName}</div>
             <div class="profile-email" style="font-size:14px; color:var(--text-muted); margin-top:4px;">${userEmail}</div>

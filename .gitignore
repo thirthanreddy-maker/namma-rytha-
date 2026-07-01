@@ -11,3 +11,11 @@ refactor.js
 
 # Local Netlify folder
 .netlify
+
+# Environment secrets – never commit the real .env
+.env
+
+# Large background videos (ignore local-only high-res dashboard video to bypass GitHub 100MB limit)
+assets/dashboard_background.mp4
+dist/assets/dashboard_background.mp4
+
