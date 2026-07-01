@@ -3,22 +3,17 @@ const path = require('path');
 
 const DIST_DIR = path.join(__dirname, 'dist');
 
-// Files to copy from root to dist
 const FILES_TO_COPY = [
   'index.html',
   'login.html',
   'admin.html',
   'admin_login.html',
-  'mobile_app.html',
   'app.js',
-  'mobile_app.js',
   'translations.js',
   'style.css',
-  'mobile_app.css',
   'smooth.css',
   'logo.png',
   'manifest.json',
-  'mobile_manifest.json',
   'sw.js'
 ];
 
