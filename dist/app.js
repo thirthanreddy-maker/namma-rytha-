@@ -231,8 +231,6 @@ function showPage(id) {
   if (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang] && titleKeys[id]) {
     pageTitle = TRANSLATIONS[currentLang][titleKeys[id]] || pageTitle;
   }
-  document.getElementById('pageTitle').textContent = pageTitle;
-  document.getElementById('breadcrumb').textContent = subs[id] || '';
   state.currentPage = id;
 
   // Re-apply translations to the newly visible page
