@@ -351,24 +351,22 @@
   <!-- BACKGROUND VIDEO -->
   <div class="bg-video-container">
     <video class="bg-video" autoplay loop muted playsinline id="bg-video-element">
-      <!-- Loaded dynamically via script below -->
+      <source src="assets/dashboard_background.mp4" type="video/mp4" id="local-video-source">
+      <source src="assets/background.mp4" type="video/mp4">
     </video>
     <script>
       (function() {
-        const v = document.getElementById('bg-video-element');
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        const isRemote = window.location.hostname !== 'localhost' && 
+                         window.location.hostname !== '127.0.0.1' && 
+                         window.location.protocol !== 'file:';
         
-        if (isLocal) {
-          const s1 = document.createElement('source');
-          s1.src = 'assets/dashboard_background.mp4';
-          s1.type = 'video/mp4';
-          v.appendChild(s1);
+        if (isRemote) {
+          const s = document.getElementById('local-video-source');
+          if (s) s.remove();
         }
         
-        const s2 = document.createElement('source');
-        s2.src = 'assets/background.mp4';
-        s2.type = 'video/mp4';
-        v.appendChild(s2);
+        const v = document.getElementById('bg-video-element');
+        v.load();
         
         // Autoplay play check and interaction fallback
         v.play().catch(function() {
